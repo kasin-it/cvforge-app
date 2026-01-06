@@ -295,9 +295,9 @@ export function OptimizationStep({ wizard }: OptimizationStepProps) {
 
       {/* Navigation */}
       <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-        <Button variant="outline" onClick={wizard.prevStep}>
+        <Button variant="outline" onClick={() => wizard.goToStep(3)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Gap Analysis
         </Button>
         <Button
           onClick={wizard.optimizeCV}

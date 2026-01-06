@@ -24,6 +24,8 @@ export interface EnrichOptions {
   mode?: OptimizationMode;
   /** Additional context from the user (unlisted skills, achievements, preferences) */
   context?: string;
+  /** Specific gaps identified from pre-analysis that should be addressed */
+  gaps?: string[];
 }
 
 export interface CvOptimizerConfig {
@@ -47,7 +49,7 @@ export class CvOptimizerService {
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
       output: Output.object({ schema: enrichedCvSchema }),
-      prompt: buildEnrichmentPrompt(cv, job, mode, options.context),
+      prompt: buildEnrichmentPrompt(cv, job, mode, options.context, options.gaps),
     });
 
     return output;

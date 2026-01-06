@@ -4,7 +4,7 @@ import { z } from "zod";
 export const contactFormSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   phone: z.string().nullable(),
-  location: z.string().min(1, "Location is required"),
+  location: z.string().nullable(),
   linkedin: z.string().nullable(),
   github: z.string().nullable(),
   website: z.string().nullable(),
@@ -52,7 +52,7 @@ export const cvFormSchema = z.object({
   summary: z.string().min(10, "Summary must be at least 10 characters"),
   experience: z.array(experienceFormSchema),
   skills: z.array(z.string()),
-  education: z.array(educationFormSchema),
+  education: z.array(educationFormSchema).nullable(),
   projects: z.array(projectFormSchema).nullable(),
   blogPosts: z.array(blogPostFormSchema).nullable(),
   languages: z.array(z.string()).nullable(),

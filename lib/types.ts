@@ -30,7 +30,7 @@ export type BlogPostWithId = SchemaBlogPost & { id: string };
 // CV type for form state (with IDs)
 export type CVFormData = Omit<SchemaCV, "experience" | "education" | "projects" | "blogPosts"> & {
   experience: ExperienceWithId[];
-  education: EducationWithId[];
+  education: EducationWithId[] | null;
   projects: ProjectWithId[] | null;
   blogPosts: BlogPostWithId[] | null;
 };
@@ -48,8 +48,8 @@ export type OptimizationSettings = {
   template: TemplateType;
 };
 
-// Wizard State
-export type WizardStep = 1 | 2 | 3 | 4;
+// Wizard State (5 steps: CV Input, Job Posting, Gap Analysis, Optimization, Preview)
+export type WizardStep = 1 | 2 | 3 | 4 | 5;
 
 export type JobInputMethod = "url" | "text" | null;
 
@@ -77,7 +77,7 @@ export function createEmptyCVFormData(): CVFormData {
     contact: {
       email: "",
       phone: null,
-      location: "",
+      location: null,
       linkedin: null,
       github: null,
       website: null,
@@ -85,7 +85,7 @@ export function createEmptyCVFormData(): CVFormData {
     summary: "",
     experience: [],
     skills: [],
-    education: [],
+    education: null,
     projects: null,
     blogPosts: null,
     languages: null,
@@ -103,7 +103,7 @@ export function formDataToCV(formData: CVFormData): SchemaCV {
   return {
     ...formData,
     experience: formData.experience.map(({ id, ...exp }) => exp),
-    education: formData.education.map(({ id, ...edu }) => edu),
+    education: formData.education?.map(({ id, ...edu }) => edu) ?? null,
     projects: formData.projects?.map(({ id, ...proj }) => proj) ?? null,
     blogPosts: formData.blogPosts?.map(({ id, ...post }) => post) ?? null,
   };
@@ -114,7 +114,7 @@ export function cvToFormData(cv: SchemaCV): CVFormData {
   return {
     ...cv,
     experience: cv.experience.map((exp) => ({ ...exp, id: generateId() })),
-    education: cv.education.map((edu) => ({ ...edu, id: generateId() })),
+    education: cv.education?.map((edu) => ({ ...edu, id: generateId() })) ?? null,
     projects: cv.projects?.map((proj) => ({ ...proj, id: generateId() })) ?? null,
     blogPosts: cv.blogPosts?.map((post) => ({ ...post, id: generateId() })) ?? null,
   };

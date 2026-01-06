@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { TagInput } from "@/components/ui/tag-input";
-import { ArrowRight, Download, Upload, X, GripVertical } from "lucide-react";
+import { ArrowRight, Download, Upload, X, GripVertical, Trash2 } from "lucide-react";
 
 type CVInputStepProps = {
   wizard: CVWizardReturn;
@@ -45,7 +45,7 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
   const educationArray = useFieldArray({
     control,
-    name: "education",
+    name: "education" as "experience", // Type hack for nullable array
   });
 
   const projectsArray = useFieldArray({
@@ -82,10 +82,10 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               ...exp,
               id: wizard.generateId(),
             })),
-            education: imported.education.map((edu: any) => ({
+            education: imported.education?.map((edu: any) => ({
               ...edu,
               id: wizard.generateId(),
-            })),
+            })) ?? null,
             projects: imported.projects?.map((proj: any) => ({
               ...proj,
               id: wizard.generateId(),
@@ -106,6 +106,30 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     wizard.nextStep();
   };
 
+  const handleClearData = () => {
+    wizard.clearSavedCV();
+    form.reset({
+      name: "",
+      title: "",
+      contact: {
+        email: "",
+        phone: null,
+        location: null,
+        linkedin: null,
+        github: null,
+        website: null,
+      },
+      summary: "",
+      experience: [],
+      skills: [],
+      education: null,
+      projects: null,
+      blogPosts: null,
+      languages: null,
+      certifications: null,
+    });
+  };
+
   // Add experience
   const addExperience = () => {
     experienceArray.append({
@@ -119,12 +143,16 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
   // Add education
   const addEducation = () => {
-    educationArray.append({
-      id: wizard.generateId(),
-      degree: "",
-      school: "",
-      year: "",
-    });
+    const currentEducation = watch("education") || [];
+    setValue("education", [
+      ...currentEducation,
+      {
+        id: wizard.generateId(),
+        degree: "",
+        school: "",
+        year: "",
+      },
+    ]);
   };
 
   // Add project
@@ -445,6 +473,177 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               )}
             </CollapsibleSection>
 
+            {/* Projects */}
+            <CollapsibleSection
+              title="Projects"
+              optional
+              defaultOpen={false}
+              onAdd={addProject}
+              addLabel="Add another project"
+            >
+              {(!watch("projects") || watch("projects")?.length === 0) ? (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No projects added yet. Click below to add your first project.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {(watch("projects") || []).map((proj, index) => (
+                    <div
+                      key={proj.id}
+                      className="relative border border-border rounded-lg p-4 bg-muted/30"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = watch("projects") || [];
+                          const updated = current.filter((_, i) => i !== index);
+                          setValue("projects", updated.length > 0 ? updated : null);
+                        }}
+                        className="absolute top-3 right-3 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+
+                      <div className="grid gap-4 sm:grid-cols-2 mb-3">
+                        <div className="space-y-2">
+                          <Label>Project Name</Label>
+                          <Input
+                            placeholder="My Awesome Project"
+                            value={proj.name}
+                            onChange={(e) => {
+                              const current = watch("projects") || [];
+                              const updated = [...current];
+                              updated[index] = { ...updated[index], name: e.target.value };
+                              setValue("projects", updated);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL (optional)</Label>
+                          <Input
+                            placeholder="https://github.com/..."
+                            value={proj.url || ""}
+                            onChange={(e) => {
+                              const current = watch("projects") || [];
+                              const updated = [...current];
+                              updated[index] = { ...updated[index], url: e.target.value || null };
+                              setValue("projects", updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2 mb-3">
+                        <Label>Description</Label>
+                        <Textarea
+                          placeholder="Brief description of the project..."
+                          rows={2}
+                          value={proj.description}
+                          onChange={(e) => {
+                            const current = watch("projects") || [];
+                            const updated = [...current];
+                            updated[index] = { ...updated[index], description: e.target.value };
+                            setValue("projects", updated);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Technologies</Label>
+                        <TagInput
+                          value={proj.technologies}
+                          onChange={(val) => {
+                            const current = watch("projects") || [];
+                            const updated = [...current];
+                            updated[index] = { ...updated[index], technologies: val };
+                            setValue("projects", updated);
+                          }}
+                          placeholder="Add technology..."
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CollapsibleSection>
+
+            {/* Blog Posts */}
+            <CollapsibleSection
+              title="Blog Posts"
+              optional
+              defaultOpen={false}
+              onAdd={addBlogPost}
+              addLabel="Add another blog post"
+            >
+              {(!watch("blogPosts") || watch("blogPosts")?.length === 0) ? (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No blog posts added yet. Click below to add your first post.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {(watch("blogPosts") || []).map((post, index) => (
+                    <div
+                      key={post.id}
+                      className="relative border border-border rounded-lg p-4 bg-muted/30"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = watch("blogPosts") || [];
+                          const updated = current.filter((_, i) => i !== index);
+                          setValue("blogPosts", updated.length > 0 ? updated : null);
+                        }}
+                        className="absolute top-3 right-3 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+
+                      <div className="grid gap-4 sm:grid-cols-2 mb-3">
+                        <div className="space-y-2">
+                          <Label>Title</Label>
+                          <Input
+                            placeholder="How I Built a CV Optimizer"
+                            value={post.name}
+                            onChange={(e) => {
+                              const current = watch("blogPosts") || [];
+                              const updated = [...current];
+                              updated[index] = { ...updated[index], name: e.target.value };
+                              setValue("blogPosts", updated);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL</Label>
+                          <Input
+                            placeholder="https://blog.example.com/..."
+                            value={post.url}
+                            onChange={(e) => {
+                              const current = watch("blogPosts") || [];
+                              const updated = [...current];
+                              updated[index] = { ...updated[index], url: e.target.value };
+                              setValue("blogPosts", updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Description</Label>
+                        <Textarea
+                          placeholder="Brief description of the blog post..."
+                          rows={2}
+                          value={post.description}
+                          onChange={(e) => {
+                            const current = watch("blogPosts") || [];
+                            const updated = [...current];
+                            updated[index] = { ...updated[index], description: e.target.value };
+                            setValue("blogPosts", updated);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CollapsibleSection>
+
             {/* Languages */}
             <CollapsibleSection title="Languages" optional defaultOpen={false}>
               <div className="space-y-2">
@@ -457,6 +656,24 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                       value={field.value || []}
                       onChange={(val) => field.onChange(val.length ? val : null)}
                       placeholder="Add a language..."
+                    />
+                  )}
+                />
+              </div>
+            </CollapsibleSection>
+
+            {/* Certifications */}
+            <CollapsibleSection title="Certifications" optional defaultOpen={false}>
+              <div className="space-y-2">
+                <Label>Certifications</Label>
+                <Controller
+                  control={control}
+                  name="certifications"
+                  render={({ field }) => (
+                    <TagInput
+                      value={field.value || []}
+                      onChange={(val) => field.onChange(val.length ? val : null)}
+                      placeholder="Add a certification..."
                     />
                   )}
                 />
@@ -487,10 +704,16 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
         {/* Actions */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-          <Button type="button" variant="outline" onClick={wizard.exportCVToJSON}>
-            <Download className="h-4 w-4 mr-2" />
-            Save as JSON
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button type="button" variant="outline" onClick={wizard.exportCVToJSON}>
+              <Download className="h-4 w-4 mr-2" />
+              Save as JSON
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleClearData} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear
+            </Button>
+          </div>
           <Button type="submit">
             Continue
             <ArrowRight className="h-4 w-4 ml-2" />

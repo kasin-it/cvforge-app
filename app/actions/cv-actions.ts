@@ -5,9 +5,11 @@ import {
   cvSchema,
   jobPostingSchema,
   enrichedCvSchema,
+  enrichmentMetaSchema,
   type CV,
   type JobPosting,
   type EnrichedCV,
+  type EnrichmentMeta,
 } from "@/schema";
 import {
   JobPostingAnalyzerService,
@@ -43,6 +45,7 @@ const optimizeCvSchema = z.object({
   job: jobPostingSchema,
   mode: z.enum(["rephrase", "enhance", "tailor"]).default("enhance"),
   context: z.string().optional(),
+  gaps: z.array(z.string()).optional(),
 });
 
 const renderCvSchema = z.object({
@@ -128,11 +131,13 @@ export async function optimizeCV(
   formData: FormData
 ): Promise<ActionState<EnrichedCV>> {
   try {
+    const gapsRaw = formData.get("gaps");
     const rawData = {
       cv: JSON.parse(formData.get("cv") as string),
       job: JSON.parse(formData.get("job") as string),
       mode: formData.get("mode") as OptimizationMode,
-      context: formData.get("context") as string | undefined,
+      context: formData.get("context") ?? undefined,
+      gaps: gapsRaw ? JSON.parse(gapsRaw as string) : undefined,
     };
 
     const validated = optimizeCvSchema.safeParse(rawData);
@@ -148,6 +153,7 @@ export async function optimizeCV(
     const enrichedCV = await optimizer.enrich(validated.data.cv, validated.data.job, {
       mode: validated.data.mode,
       context: validated.data.context,
+      gaps: validated.data.gaps,
     });
 
     return {
@@ -216,6 +222,95 @@ export async function renderCV(formData: FormData): Promise<{
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to render CV",
+    };
+  }
+}
+
+// ============================================
+// Gap Analysis
+// ============================================
+
+const analyzeGapsSchema = z.object({
+  cv: cvSchema,
+  job: jobPostingSchema,
+});
+
+export async function analyzeGaps(
+  _prevState: ActionState<EnrichmentMeta>,
+  formData: FormData
+): Promise<ActionState<EnrichmentMeta>> {
+  try {
+    const rawData = {
+      cv: JSON.parse(formData.get("cv") as string),
+      job: JSON.parse(formData.get("job") as string),
+    };
+
+    const validated = analyzeGapsSchema.safeParse(rawData);
+
+    if (!validated.success) {
+      return {
+        success: false,
+        error: validated.error.issues[0]?.message || "Invalid input",
+      };
+    }
+
+    const optimizer = new CvOptimizerService();
+    const analysis = await optimizer.analyze(validated.data.cv, validated.data.job);
+
+    return {
+      success: true,
+      data: analysis,
+    };
+  } catch (error) {
+    console.error("Gap analysis error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to analyze gaps",
+    };
+  }
+}
+
+// ============================================
+// Preview HTML Generation
+// ============================================
+
+const previewHtmlSchema = z.object({
+  cv: cvSchema,
+  template: z.enum(["modern", "minimal"]).default("modern"),
+});
+
+export async function generatePreviewHTML(formData: FormData): Promise<{
+  success: boolean;
+  data?: string;
+  error?: string;
+}> {
+  try {
+    const rawData = {
+      cv: JSON.parse(formData.get("cv") as string),
+      template: formData.get("template") as "modern" | "minimal",
+    };
+
+    const validated = previewHtmlSchema.safeParse(rawData);
+
+    if (!validated.success) {
+      return {
+        success: false,
+        error: validated.error.issues[0]?.message || "Invalid input",
+      };
+    }
+
+    const renderer = new CVRendererService();
+    const html = await renderer.renderHTML(validated.data.cv, validated.data.template);
+
+    return {
+      success: true,
+      data: html,
+    };
+  } catch (error) {
+    console.error("Preview HTML error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to generate preview",
     };
   }
 }

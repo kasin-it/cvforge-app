@@ -303,6 +303,9 @@ export function modern(data: CV): string {
         <div class="skills-list">${data.skills.join(" · ")}</div>
     </div>
 
+    ${
+      data.education && data.education.length > 0
+        ? `
     <div class="section">
         <div class="section-title">Education</div>
         ${data.education
@@ -319,6 +322,9 @@ export function modern(data: CV): string {
           )
           .join("")}
     </div>
+    `
+        : ""
+    }
 
     ${
       data.languages && data.languages.length > 0

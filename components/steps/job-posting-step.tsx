@@ -249,9 +249,18 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <Button onClick={wizard.nextStep}>
-            Continue
-            <ArrowRight className="h-4 w-4 ml-2" />
+          <Button onClick={wizard.analyzeGaps} disabled={wizard.isAnalyzingGaps}>
+            {wizard.isAnalyzingGaps ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                Analyze Gaps
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </>
+            )}
           </Button>
         </div>
       </StepContainer>

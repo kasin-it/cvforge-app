@@ -300,6 +300,9 @@ export function minimal(data: CV): string {
     </div>
 
     <div class="two-column">
+        ${
+          data.education && data.education.length > 0
+            ? `
         <div class="section">
             <div class="section-title">Education</div>
             ${data.education
@@ -313,6 +316,9 @@ export function minimal(data: CV): string {
               )
               .join("")}
         </div>
+        `
+            : ""
+        }
 
         ${
           data.languages && data.languages.length > 0

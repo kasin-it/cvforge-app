@@ -8,7 +8,7 @@ export const contactSchema = z
   .object({
     email: z.string(),
     phone: z.string().nullable(),
-    location: z.string(),
+    location: z.string().nullable(),
     linkedin: z.string().nullable(),
     github: z.string().nullable(),
     website: z.string().nullable(),
@@ -57,7 +57,7 @@ export const cvSchema = z
     summary: z.string(),
     experience: z.array(experienceSchema),
     skills: z.array(z.string()),
-    education: z.array(educationSchema),
+    education: z.array(educationSchema).nullable(),
     projects: z.array(projectSchema).nullable(),
     blogPosts: z.array(blogPostSchema).nullable(),
     languages: z.array(z.string()).nullable(),

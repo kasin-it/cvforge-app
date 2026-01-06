@@ -91,15 +91,20 @@ Example of what we want:
 NOT this:
 "Migrated jQuery to React. Improved code quality."`,
     skills: `- Lead with the job's must-have requirements
+- Add ALL skills from the "Gaps to Address" list - this is mandatory
 - Add all reasonably inferable skills from their experience
-- Include relevant items from job's tech stack
-- Comprehensive coverage of job-relevant skills`,
+- Include ALL relevant items from job's tech stack
+- Include ALL languages mentioned in job requirements
+- Include ALL databases, cloud platforms, and methodologies from job posting
+- Comprehensive coverage - if it's in the job requirements, it should be in the skills`,
     allowedChanges: [
       "Creating detailed case studies based on general experience",
       "Combining multiple small achievements into larger narratives",
       "Adding specific metrics that are plausible for the work described",
       "Crafting scenarios using job-relevant technologies",
       "Reducing number of bullets while increasing their impact",
+      "Adding ALL skills from the gaps list to the skills section",
+      "Adding technologies, languages, databases, and platforms from job requirements",
     ],
     forbidden: [
       "Mentioning the target company name in summary",
@@ -158,7 +163,8 @@ export function buildEnrichmentPrompt(
   cv: CV,
   job: JobPosting,
   mode: OptimizationMode,
-  userContext?: string
+  userContext?: string,
+  gaps?: string[]
 ): string {
   const config = MODE_CONFIGS[mode];
 
@@ -217,6 +223,8 @@ ${job.responsibilities.map((r) => `- ${r}`).join("\n")}
 **Keywords to Consider:**
 ${job.keywords.slice(0, 20).join(", ")}
 
+${gaps && gaps.length > 0 ? buildGapsSection(gaps, mode) : ""}
+
 ${userContext ? buildUserContextSection(userContext) : ""}
 
 ## ORIGINAL CV
@@ -235,6 +243,34 @@ Return the optimized CV with a _meta object containing:
 
 Generate the optimized CV now.
 `.trim();
+}
+
+function buildGapsSection(gaps: string[], mode: OptimizationMode): string {
+  const modeInstructions = {
+    rephrase: `These gaps were identified during analysis. For rephrase mode, you can only address them through terminology matching - don't add new content.`,
+    enhance: `These gaps were identified during analysis. Address them by:
+- Adding clearly implied skills that the candidate likely has based on their experience
+- Reframing existing bullets to highlight relevant aspects
+- Adding reasonable context that demonstrates these skills indirectly`,
+    tailor: `## CRITICAL: GAPS TO ADDRESS
+
+The user has identified these specific gaps that MUST be addressed in the optimized CV. This is your PRIMARY OBJECTIVE.
+
+For EACH gap listed below, you MUST:
+1. Add the skill/technology to the skills section if applicable
+2. Weave it naturally into relevant experience bullets with specific examples
+3. Mention it in the summary if it's a key requirement
+4. Create plausible context showing how the candidate used or was exposed to it
+
+Do NOT leave any of these gaps unaddressed. The candidate has explicitly requested coverage of these items.`,
+  };
+
+  return `
+${modeInstructions[mode]}
+
+**Gaps to Address:**
+${gaps.map((gap) => `- ${gap}`).join("\n")}
+`;
 }
 
 function buildUserContextSection(context: string): string {

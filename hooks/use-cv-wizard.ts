@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useCallback, useTransition } from "react";
-import type { JobPosting, EnrichedCV, CV } from "@/schema";
+import { useState, useCallback, useEffect } from "react";
+import type { JobPosting, EnrichedCV, CV, EnrichmentMeta } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
 import type { OptimizationMode, TemplateType, ExportFormat, WizardStep } from "@/lib/types";
+
+const STORAGE_KEY = "cvforge_cv_data";
 import {
   analyzeJobFromUrl,
   analyzeJobFromText,
+  analyzeGaps,
   optimizeCV,
   renderCV,
 } from "@/app/actions/cv-actions";
@@ -19,6 +22,11 @@ export type WizardState = {
   jobText: string;
   jobPosting: JobPosting | null;
   isAnalyzing: boolean;
+  // Gap analysis state
+  gapAnalysis: EnrichmentMeta | null;
+  selectedGaps: string[];
+  isAnalyzingGaps: boolean;
+  // Optimization state
   mode: OptimizationMode;
   context: string;
   template: TemplateType;
@@ -39,7 +47,7 @@ function createEmptyCVFormData(): CVFormValues {
     contact: {
       email: "",
       phone: null,
-      location: "",
+      location: null,
       linkedin: null,
       github: null,
       website: null,
@@ -47,7 +55,7 @@ function createEmptyCVFormData(): CVFormValues {
     summary: "",
     experience: [],
     skills: [],
-    education: [],
+    education: null,
     projects: null,
     blogPosts: null,
     languages: null,
@@ -62,6 +70,11 @@ const initialState: WizardState = {
   jobText: "",
   jobPosting: null,
   isAnalyzing: false,
+  // Gap analysis
+  gapAnalysis: null,
+  selectedGaps: [],
+  isAnalyzingGaps: false,
+  // Optimization
   mode: "enhance",
   context: "",
   template: "modern",
@@ -71,8 +84,58 @@ const initialState: WizardState = {
   error: null,
 };
 
+function loadFromLocalStorage(): CVFormValues | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const cv = JSON.parse(saved) as CV;
+      return addFormIds(cv);
+    }
+  } catch {
+    // Invalid data, ignore
+  }
+  return null;
+}
+
+function saveToLocalStorage(data: CVFormValues) {
+  if (typeof window === "undefined") return;
+  try {
+    const cv = stripFormIds(data);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(cv));
+  } catch {
+    // Storage full or unavailable, ignore
+  }
+}
+
+function clearLocalStorage() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore errors
+  }
+}
+
 export function useCVWizard() {
   const [state, setState] = useState<WizardState>(initialState);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load saved CV data from localStorage on mount
+  useEffect(() => {
+    const savedData = loadFromLocalStorage();
+    if (savedData) {
+      setState((prev) => ({ ...prev, cvFormData: savedData }));
+    }
+    setIsHydrated(true);
+  }, []);
+
+  // Save CV data to localStorage whenever it changes
+  useEffect(() => {
+    if (isHydrated && state.cvFormData) {
+      saveToLocalStorage(state.cvFormData);
+    }
+  }, [state.cvFormData, isHydrated]);
 
   // Navigation
   const goToStep = useCallback((step: WizardStep) => {
@@ -82,7 +145,7 @@ export function useCVWizard() {
   const nextStep = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      currentStep: Math.min(prev.currentStep + 1, 4) as WizardStep,
+      currentStep: Math.min(prev.currentStep + 1, 5) as WizardStep,
       error: null,
     }));
   }, []);
@@ -167,6 +230,64 @@ export function useCVWizard() {
     }
   }, []);
 
+  // Gap Analysis
+  const analyzeGapsAction = useCallback(async () => {
+    if (!state.cvFormData || !state.jobPosting) {
+      setState((prev) => ({
+        ...prev,
+        error: "Missing CV data or job posting",
+      }));
+      return;
+    }
+
+    setState((prev) => ({ ...prev, isAnalyzingGaps: true, error: null }));
+
+    try {
+      const cv = stripFormIds(state.cvFormData);
+      const formData = new FormData();
+      formData.set("cv", JSON.stringify(cv));
+      formData.set("job", JSON.stringify(state.jobPosting));
+
+      const result = await analyzeGaps({ success: false }, formData);
+
+      if (result.success && result.data) {
+        setState((prev) => ({
+          ...prev,
+          gapAnalysis: result.data!,
+          selectedGaps: result.data!.gapAnalysis, // Select all by default
+          isAnalyzingGaps: false,
+          currentStep: 3,
+          error: null,
+        }));
+      } else {
+        setState((prev) => ({
+          ...prev,
+          isAnalyzingGaps: false,
+          error: result.error || "Failed to analyze gaps",
+        }));
+      }
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        isAnalyzingGaps: false,
+        error: error instanceof Error ? error.message : "An unexpected error occurred",
+      }));
+    }
+  }, [state.cvFormData, state.jobPosting]);
+
+  const setSelectedGaps = useCallback((gaps: string[]) => {
+    setState((prev) => ({ ...prev, selectedGaps: gaps }));
+  }, []);
+
+  const toggleGap = useCallback((gap: string) => {
+    setState((prev) => ({
+      ...prev,
+      selectedGaps: prev.selectedGaps.includes(gap)
+        ? prev.selectedGaps.filter((g) => g !== gap)
+        : [...prev.selectedGaps, gap],
+    }));
+  }, []);
+
   // Optimization Settings
   const setMode = useCallback((mode: OptimizationMode) => {
     setState((prev) => ({ ...prev, mode }));
@@ -211,6 +332,9 @@ export function useCVWizard() {
       if (state.context) {
         formData.set("context", state.context);
       }
+      if (state.selectedGaps.length > 0) {
+        formData.set("gaps", JSON.stringify(state.selectedGaps));
+      }
 
       console.log("[OptimizeCV] Calling server action...");
       const result = await optimizeCV({ success: false }, formData);
@@ -221,7 +345,7 @@ export function useCVWizard() {
           ...prev,
           enrichedCV: result.data!,
           isOptimizing: false,
-          currentStep: 4,
+          currentStep: 5,
           error: null,
         }));
       } else {
@@ -239,7 +363,7 @@ export function useCVWizard() {
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }
-  }, [state.cvFormData, state.jobPosting, state.mode, state.context]);
+  }, [state.cvFormData, state.jobPosting, state.mode, state.context, state.selectedGaps]);
 
   // Export
   const setFormat = useCallback((format: ExportFormat) => {
@@ -321,6 +445,17 @@ export function useCVWizard() {
     setState(initialState);
   }, []);
 
+  // Clear saved CV data from localStorage and reset form
+  const clearSavedCV = useCallback(() => {
+    clearLocalStorage();
+    setState((prev) => ({ ...prev, cvFormData: createEmptyCVFormData() }));
+  }, []);
+
+  // Update enriched CV (for editing after optimization)
+  const setEnrichedCV = useCallback((cv: EnrichedCV) => {
+    setState((prev) => ({ ...prev, enrichedCV: cv }));
+  }, []);
+
   return {
     ...state,
     goToStep,
@@ -331,6 +466,11 @@ export function useCVWizard() {
     setJobText,
     setJobPosting,
     analyzeJob,
+    // Gap analysis
+    analyzeGaps: analyzeGapsAction,
+    setSelectedGaps,
+    toggleGap,
+    // Optimization
     setMode,
     setContext,
     setTemplate,
@@ -340,6 +480,8 @@ export function useCVWizard() {
     exportCVToJSON,
     importCVFromJSON,
     reset,
+    clearSavedCV,
+    setEnrichedCV,
     generateId,
   };
 }
