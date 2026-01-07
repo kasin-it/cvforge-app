@@ -6,19 +6,16 @@ import { CVWizardReturn, TemplateType, ExportFormat } from "@/hooks/use-cv-wizar
 import { EnrichedCV } from "@/schema";
 import { StepContainer } from "@/components/layout/step-container";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { TagInput } from "@/components/ui/tag-input";
+import { CVPreview } from "@/components/cv-preview";
 import {
   ArrowLeft,
   Download,
   RefreshCw,
-  CheckCircle2,
-  AlertTriangle,
   FileText,
   Code,
   Pencil,
@@ -48,22 +45,14 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
           <p className="text-muted-foreground mb-4">
             No optimized CV found. Please go back and try again.
           </p>
-          <Button onClick={() => wizard.goToStep(3)}>
+          <Button onClick={() => wizard.goToStep(2)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Optimization
+            Back to Job Posting
           </Button>
         </div>
       </StepContainer>
     );
   }
-
-  const { _meta: meta } = enrichedCV;
-  const scoreColor =
-    meta.atsScore >= 80
-      ? "text-green-600"
-      : meta.atsScore >= 60
-        ? "text-yellow-600"
-        : "text-red-600";
 
   if (isEditing) {
     return (
@@ -128,100 +117,44 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
               </div>
             </div>
 
-            {/* CV Content Preview */}
-            <div className="p-8 min-h-[600px] max-h-[800px] overflow-y-auto bg-white">
-              {wizard.template === "modern" ? (
-                <ModernTemplate cv={enrichedCV} />
-              ) : (
-                <MinimalTemplate cv={enrichedCV} />
-              )}
-            </div>
+            {/* CV Content Preview - rendered client-side using actual templates */}
+            <CVPreview
+              cv={enrichedCV}
+              template={wizard.template}
+              className="w-full min-h-[600px] h-[800px]"
+            />
           </div>
         </div>
 
-        {/* Optimization Results */}
+        {/* Export Options */}
         <div className="lg:col-span-2 space-y-4">
-          {/* ATS Score */}
+          {/* Template Selection */}
           <div className="border border-border rounded-xl p-5 bg-card">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-display font-semibold">ATS Score</h3>
-              <span className={cn("text-3xl font-bold", scoreColor)}>
-                {meta.atsScore}%
-              </span>
+            <h3 className="font-display font-semibold mb-4">Template</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => wizard.setTemplate("modern")}
+                className={cn(
+                  "flex-1 px-4 py-3 rounded-lg border-2 transition-all text-center",
+                  wizard.template === "modern"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card hover:border-primary/50"
+                )}
+              >
+                Modern
+              </button>
+              <button
+                onClick={() => wizard.setTemplate("minimal")}
+                className={cn(
+                  "flex-1 px-4 py-3 rounded-lg border-2 transition-all text-center",
+                  wizard.template === "minimal"
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card hover:border-primary/50"
+                )}
+              >
+                Minimal
+              </button>
             </div>
-            <Progress value={meta.atsScore} className="h-3" />
-            <p className="text-sm text-muted-foreground mt-3">
-              {meta.atsScore >= 80
-                ? "Excellent match for this position!"
-                : meta.atsScore >= 60
-                  ? "Good match, but there's room for improvement."
-                  : "Consider adding more relevant experience."}
-            </p>
-          </div>
-
-          {/* Matched Keywords */}
-          <div className="border border-border rounded-xl p-5 bg-card">
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <h3 className="font-display font-semibold">Matched Keywords</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {meta.matchedKeywords.map((keyword) => (
-                <Badge
-                  key={keyword}
-                  variant="secondary"
-                  className="bg-green-100 text-green-800 hover:bg-green-100"
-                >
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Added Keywords */}
-          <div className="border border-border rounded-xl p-5 bg-card">
-            <div className="flex items-center gap-2 mb-3">
-              <Badge variant="default" className="h-5 w-5 p-0 justify-center">
-                +
-              </Badge>
-              <h3 className="font-display font-semibold">Added Keywords</h3>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {meta.injectedKeywords.map((keyword) => (
-                <Badge key={keyword} variant="default">
-                  {keyword}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Gaps */}
-          {meta.gapAnalysis.length > 0 && (
-            <div className="border border-border rounded-xl p-5 bg-card">
-              <div className="flex items-center gap-2 mb-3">
-                <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                <h3 className="font-display font-semibold">Gaps to Address</h3>
-              </div>
-              <ul className="space-y-2">
-                {meta.gapAnalysis.map((gap, index) => (
-                  <li
-                    key={index}
-                    className="text-sm text-muted-foreground flex items-start gap-2"
-                  >
-                    <span className="text-yellow-600 mt-0.5">•</span>
-                    {gap}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Fit Summary */}
-          <div className="border border-border rounded-xl p-5 bg-card">
-            <h3 className="font-display font-semibold mb-3">Fit Summary</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {meta.fitSummary}
-            </p>
           </div>
 
           {/* Export Options */}
@@ -263,11 +196,11 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
 
       {/* Navigation */}
       <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
-        <Button variant="outline" onClick={() => wizard.goToStep(4)}>
+        <Button variant="outline" onClick={() => wizard.goToStep(2)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Settings
+          Back to Job Posting
         </Button>
-        <Button variant="outline" onClick={() => wizard.goToStep(4)}>
+        <Button variant="outline" onClick={() => wizard.goToStep(2)}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Re-optimize
         </Button>
@@ -286,11 +219,13 @@ type EditModeProps = {
 type ExperienceWithId = EnrichedCV["experience"][0] & { id: string };
 type EducationWithId = { id: string; degree: string; school: string; year: string };
 type ProjectWithId = { id: string; name: string; description: string; url: string | null; technologies: string[] };
+type BlogPostWithId = { id: string; name: string; description: string; url: string };
 
-type EditFormValues = Omit<EnrichedCV, "_meta" | "experience" | "education" | "projects"> & {
+type EditFormValues = Omit<EnrichedCV, "_meta" | "experience" | "education" | "projects" | "blogPosts"> & {
   experience: ExperienceWithId[];
   education: EducationWithId[] | null;
   projects: ProjectWithId[] | null;
+  blogPosts: BlogPostWithId[] | null;
 };
 
 function EditMode({ cv, onSave, onCancel }: EditModeProps) {
@@ -301,6 +236,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
     experience: cvData.experience.map((exp) => ({ ...exp, id: generateId() })),
     education: cvData.education?.map((edu) => ({ ...edu, id: generateId() })) ?? null,
     projects: cvData.projects?.map((proj) => ({ ...proj, id: generateId() })) ?? null,
+    blogPosts: cvData.blogPosts?.map((post) => ({ ...post, id: generateId() })) ?? null,
   };
 
   const form = useForm<EditFormValues>({
@@ -340,7 +276,11 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
         url: proj.url,
         technologies: proj.technologies,
       })) ?? null,
-      blogPosts: data.blogPosts,
+      blogPosts: data.blogPosts?.map((post) => ({
+        name: post.name,
+        description: post.description,
+        url: post.url,
+      })) ?? null,
       languages: data.languages,
       certifications: data.certifications,
       _meta,
@@ -384,6 +324,20 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
     const current = watch("projects") || [];
     const updated = current.filter((_, i) => i !== index);
     setValue("projects", updated.length > 0 ? updated : null);
+  };
+
+  const addBlogPost = () => {
+    const current = watch("blogPosts") || [];
+    setValue("blogPosts", [
+      ...current,
+      { id: generateId(), name: "", description: "", url: "" },
+    ]);
+  };
+
+  const removeBlogPost = (index: number) => {
+    const current = watch("blogPosts") || [];
+    const updated = current.filter((_, i) => i !== index);
+    setValue("blogPosts", updated.length > 0 ? updated : null);
   };
 
   return (
@@ -680,6 +634,73 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
+        {/* Blog Posts */}
+        <div className="border border-border rounded-xl p-5 bg-card">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-display font-semibold">Blog Posts</h3>
+            <Button type="button" variant="outline" size="sm" onClick={addBlogPost}>
+              <Plus className="h-4 w-4 mr-1" />
+              Add
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {(watch("blogPosts") || []).map((post, index) => (
+              <div key={post.id} className="border border-border rounded-lg p-4 bg-muted/30">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Blog Post {index + 1}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeBlogPost(index)}
+                    className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 mb-3">
+                  <Input
+                    placeholder="Title"
+                    value={post.name}
+                    onChange={(e) => {
+                      const current = watch("blogPosts") || [];
+                      const updated = [...current];
+                      updated[index] = { ...updated[index], name: e.target.value };
+                      setValue("blogPosts", updated);
+                    }}
+                  />
+                  <Input
+                    placeholder="URL"
+                    value={post.url}
+                    onChange={(e) => {
+                      const current = watch("blogPosts") || [];
+                      const updated = [...current];
+                      updated[index] = { ...updated[index], url: e.target.value };
+                      setValue("blogPosts", updated);
+                    }}
+                  />
+                </div>
+                <Textarea
+                  placeholder="Description"
+                  value={post.description}
+                  onChange={(e) => {
+                    const current = watch("blogPosts") || [];
+                    const updated = [...current];
+                    updated[index] = { ...updated[index], description: e.target.value };
+                    setValue("blogPosts", updated);
+                  }}
+                  rows={2}
+                />
+              </div>
+            ))}
+            {(!watch("blogPosts") || watch("blogPosts")?.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No blog posts added. Click "Add" to add a blog post.
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Languages */}
         <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Languages</h3>
@@ -725,288 +746,5 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
         </div>
       </form>
     </StepContainer>
-  );
-}
-
-// Modern Template Component - Full Preview
-function ModernTemplate({ cv }: { cv: EnrichedCV }) {
-  return (
-    <div className="font-sans text-gray-800 text-sm leading-relaxed">
-      {/* Header */}
-      <div className="flex items-start gap-4 mb-6 pb-4 border-b-2 border-primary/30">
-        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl flex-shrink-0">
-          {cv.name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")}
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{cv.name}</h1>
-          <p className="text-primary font-medium">{cv.title}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-gray-600">
-            <span>{cv.contact.email}</span>
-            {cv.contact.phone && <span>{cv.contact.phone}</span>}
-            {cv.contact.location && <span>{cv.contact.location}</span>}
-            {cv.contact.linkedin && <span>{cv.contact.linkedin}</span>}
-            {cv.contact.github && <span>{cv.contact.github}</span>}
-          </div>
-        </div>
-      </div>
-
-      {/* Summary */}
-      {cv.summary && (
-        <div className="mb-5">
-          <p className="text-gray-600 italic">{cv.summary}</p>
-        </div>
-      )}
-
-      {/* Experience */}
-      {cv.experience.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-3">
-            Experience
-          </h2>
-          <div className="space-y-4">
-            {cv.experience.map((exp, index) => (
-              <div key={index}>
-                <div className="flex justify-between items-baseline">
-                  <h3 className="font-semibold text-gray-900">{exp.role}</h3>
-                  <span className="text-xs text-gray-500">{exp.period}</span>
-                </div>
-                <p className="text-gray-600 text-xs mb-1">{exp.company}</p>
-                <ul className="list-disc list-inside text-xs text-gray-600 space-y-0.5">
-                  {exp.bullets.map((bullet, i) => (
-                    <li key={i}>{bullet || "..."}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Skills */}
-      {cv.skills.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-            Skills
-          </h2>
-          <div className="flex flex-wrap gap-1.5">
-            {cv.skills.map((skill) => (
-              <span
-                key={skill}
-                className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Education */}
-      {cv.education && cv.education.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-            Education
-          </h2>
-          <div className="space-y-2">
-            {cv.education.map((edu, index) => (
-              <div key={index} className="flex justify-between">
-                <div>
-                  <p className="font-semibold text-gray-900">{edu.degree}</p>
-                  <p className="text-xs text-gray-600">{edu.school}</p>
-                </div>
-                <span className="text-xs text-gray-500">{edu.year}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Projects */}
-      {cv.projects && cv.projects.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-            Projects
-          </h2>
-          <div className="space-y-3">
-            {cv.projects.map((proj, index) => (
-              <div key={index}>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="font-semibold text-gray-900">{proj.name}</h3>
-                  {proj.url && (
-                    <span className="text-xs text-primary">{proj.url}</span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-600 mb-1">{proj.description}</p>
-                {proj.technologies.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {proj.technologies.map((tech) => (
-                      <span key={tech} className="text-xs text-primary/70">
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Languages */}
-      {cv.languages && cv.languages.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-            Languages
-          </h2>
-          <p className="text-xs text-gray-600">{cv.languages.join(", ")}</p>
-        </div>
-      )}
-
-      {/* Certifications */}
-      {cv.certifications && cv.certifications.length > 0 && (
-        <div>
-          <h2 className="text-sm font-bold text-primary uppercase tracking-wider mb-2">
-            Certifications
-          </h2>
-          <ul className="text-xs text-gray-600 space-y-0.5">
-            {cv.certifications.map((cert, index) => (
-              <li key={index}>{cert}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Minimal Template Component - Full Preview
-function MinimalTemplate({ cv }: { cv: EnrichedCV }) {
-  return (
-    <div className="font-serif text-gray-800 text-sm leading-relaxed">
-      {/* Header */}
-      <div className="text-center mb-6 pb-4 border-b border-gray-200">
-        <h1 className="text-2xl font-normal tracking-wide text-gray-900 mb-1">
-          {cv.name}
-        </h1>
-        <p className="text-gray-600">{cv.title}</p>
-        <div className="flex justify-center flex-wrap gap-x-3 mt-2 text-xs text-gray-500">
-          <span>{cv.contact.email}</span>
-          {cv.contact.phone && (
-            <>
-              <span>|</span>
-              <span>{cv.contact.phone}</span>
-            </>
-          )}
-          {cv.contact.location && (
-            <>
-              <span>|</span>
-              <span>{cv.contact.location}</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Summary */}
-      {cv.summary && (
-        <div className="mb-5">
-          <p className="text-gray-600 text-center">{cv.summary}</p>
-        </div>
-      )}
-
-      {/* Experience */}
-      {cv.experience.length > 0 && (
-        <div className="mb-5">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3 text-center">
-            Experience
-          </h2>
-          <div className="space-y-4">
-            {cv.experience.map((exp, index) => (
-              <div key={index}>
-                <div className="text-center mb-1">
-                  <h3 className="font-semibold text-gray-900">
-                    {exp.role} at {exp.company}
-                  </h3>
-                  <span className="text-xs text-gray-500">{exp.period}</span>
-                </div>
-                <ul className="text-xs text-gray-600 space-y-0.5">
-                  {exp.bullets.map((bullet, i) => (
-                    <li key={i} className="text-center">
-                      {bullet || "..."}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Skills */}
-      {cv.skills.length > 0 && (
-        <div className="mb-5 text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-            Skills
-          </h2>
-          <p className="text-xs text-gray-600">{cv.skills.join(" • ")}</p>
-        </div>
-      )}
-
-      {/* Education */}
-      {cv.education && cv.education.length > 0 && (
-        <div className="mb-5 text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-            Education
-          </h2>
-          {cv.education.map((edu, index) => (
-            <div key={index}>
-              <p className="font-semibold text-gray-900">{edu.degree}</p>
-              <p className="text-xs text-gray-600">
-                {edu.school}, {edu.year}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Projects */}
-      {cv.projects && cv.projects.length > 0 && (
-        <div className="mb-5 text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-            Projects
-          </h2>
-          <div className="space-y-2">
-            {cv.projects.map((proj, index) => (
-              <div key={index}>
-                <p className="font-semibold text-gray-900">{proj.name}</p>
-                <p className="text-xs text-gray-600">{proj.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Languages */}
-      {cv.languages && cv.languages.length > 0 && (
-        <div className="mb-5 text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-            Languages
-          </h2>
-          <p className="text-xs text-gray-600">{cv.languages.join(" • ")}</p>
-        </div>
-      )}
-
-      {/* Certifications */}
-      {cv.certifications && cv.certifications.length > 0 && (
-        <div className="text-center">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">
-            Certifications
-          </h2>
-          <p className="text-xs text-gray-600">{cv.certifications.join(" • ")}</p>
-        </div>
-      )}
-    </div>
   );
 }

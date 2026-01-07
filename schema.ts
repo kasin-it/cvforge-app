@@ -66,48 +66,22 @@ export const cvSchema = z
   .strict();
 
 // ============================================
-// Job Posting Schema
+// Job Posting Schema (simplified for optimization focus)
 // ============================================
 
-export const salarySchema = z
+// Schema for AI extraction (without sourceUrl)
+export const jobPostingExtractSchema = z
   .object({
-    range: z.string(),
-    min: z.number().nullable(),
-    max: z.number().nullable(),
-    currency: z.string(),
-    period: z.string(),
-    contract: z.string(),
-  })
-  .strict()
-  .nullable();
-
-export const additionalInfoSchema = z
-  .object({
-    key: z.string(),
-    value: z.string(),
+    title: z.string(),
+    tags: z.array(z.string()),
+    skills: z.array(z.string()),
   })
   .strict();
 
-export const jobPostingSchema = z
-  .object({
-    title: z.string(),
-    company: z.string(),
-    seniority: z.string(),
-    workModel: z.string(),
-    locations: z.array(z.string()),
-    salary: salarySchema,
-    experienceYears: z.number(),
-    mustHave: z.array(z.string()),
-    niceToHave: z.array(z.string()),
-    languages: z.array(z.string()),
-    responsibilities: z.array(z.string()),
-    techStack: z.array(z.string()),
-    benefits: z.array(z.string()),
-    keywords: z.array(z.string()),
-    suggestedCvTitle: z.string(),
-    standoutFactors: z.array(z.string()),
-    additionalInfo: z.array(additionalInfoSchema),
-    sourceUrl: z.string().nullable(),
+// Full schema including optional sourceUrl
+export const jobPostingSchema = jobPostingExtractSchema
+  .extend({
+    sourceUrl: z.string().optional(),
   })
   .strict();
 
@@ -117,11 +91,54 @@ export const jobPostingSchema = z
 
 export const enrichmentMetaSchema = z
   .object({
+    optimizationApplied: z.boolean(),
+  })
+  .strict();
+
+// ============================================
+// Gap Analysis Schemas (Structured)
+// ============================================
+
+export const gapCategorySchema = z.enum([
+  "technical-skill",
+  "soft-skill",
+  "domain-knowledge",
+  "methodology",
+  "certification",
+  "experience",
+]);
+
+export const gapPrioritySchema = z.enum([
+  "critical",
+  "recommended",
+  "nice-to-have",
+]);
+
+export const gapLocationSchema = z.enum([
+  "skills",
+  "summary",
+  "experience",
+  "projects",
+]);
+
+export const gapTypeSchema = z.enum(["missing", "terminology"]);
+
+export const gapSuggestionSchema = z
+  .object({
+    gap: z.string(),
+    type: gapTypeSchema,
+    category: gapCategorySchema,
+    priority: gapPrioritySchema,
+    locations: z.array(gapLocationSchema),
+    suggestion: z.string(),
+    existingTerm: z.string().nullable(),
+  })
+  .strict();
+
+export const gapAnalysisResultSchema = z
+  .object({
+    suggestions: z.array(gapSuggestionSchema),
     matchedKeywords: z.array(z.string()),
-    injectedKeywords: z.array(z.string()),
-    gapAnalysis: z.array(z.string()),
-    atsScore: z.number().min(0).max(100),
-    fitSummary: z.string(),
   })
   .strict();
 
@@ -157,3 +174,11 @@ export type JobPosting = z.infer<typeof jobPostingSchema>;
 export type EnrichmentMeta = z.infer<typeof enrichmentMetaSchema>;
 export type EnrichedCV = z.infer<typeof enrichedCvSchema>;
 export type RenderOptions = z.infer<typeof renderOptionsSchema>;
+
+// Gap Analysis Types
+export type GapCategory = z.infer<typeof gapCategorySchema>;
+export type GapPriority = z.infer<typeof gapPrioritySchema>;
+export type GapLocation = z.infer<typeof gapLocationSchema>;
+export type GapType = z.infer<typeof gapTypeSchema>;
+export type GapSuggestion = z.infer<typeof gapSuggestionSchema>;
+export type GapAnalysisResult = z.infer<typeof gapAnalysisResultSchema>;

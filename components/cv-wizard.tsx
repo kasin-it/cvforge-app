@@ -5,8 +5,6 @@ import { Header } from "@/components/layout/header";
 import { StepIndicator } from "@/components/layout/step-indicator";
 import { CVInputStep } from "@/components/steps/cv-input-step";
 import { JobPostingStep } from "@/components/steps/job-posting-step";
-import { GapAnalysisStep } from "@/components/steps/gap-analysis-step";
-import { OptimizationStep } from "@/components/steps/optimization-step";
 import { PreviewStep } from "@/components/steps/preview-step";
 
 export function CVWizard() {
@@ -19,10 +17,6 @@ export function CVWizard() {
       case 2:
         return <JobPostingStep wizard={wizard} />;
       case 3:
-        return <GapAnalysisStep wizard={wizard} />;
-      case 4:
-        return <OptimizationStep wizard={wizard} />;
-      case 5:
         return <PreviewStep wizard={wizard} />;
       default:
         return null;

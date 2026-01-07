@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import type { JobPosting, EnrichedCV, CV, EnrichmentMeta } from "@/schema";
+import type { JobPosting, EnrichedCV, CV } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
-import type { OptimizationMode, TemplateType, ExportFormat, WizardStep } from "@/lib/types";
+import type { TemplateType, ExportFormat, WizardStep } from "@/lib/types";
 
 const STORAGE_KEY = "cvforge_cv_data";
 import {
   analyzeJobFromUrl,
   analyzeJobFromText,
-  analyzeGaps,
-  optimizeCV,
+  optimizeCVUnified,
   renderCV,
 } from "@/app/actions/cv-actions";
 import { stripFormIds, addFormIds } from "@/lib/form-helpers";
@@ -22,12 +21,7 @@ export type WizardState = {
   jobText: string;
   jobPosting: JobPosting | null;
   isAnalyzing: boolean;
-  // Gap analysis state
-  gapAnalysis: EnrichmentMeta | null;
-  selectedGaps: string[];
-  isAnalyzingGaps: boolean;
   // Optimization state
-  mode: OptimizationMode;
   context: string;
   template: TemplateType;
   enrichedCV: EnrichedCV | null;
@@ -70,12 +64,7 @@ const initialState: WizardState = {
   jobText: "",
   jobPosting: null,
   isAnalyzing: false,
-  // Gap analysis
-  gapAnalysis: null,
-  selectedGaps: [],
-  isAnalyzingGaps: false,
   // Optimization
-  mode: "enhance",
   context: "",
   template: "modern",
   enrichedCV: null,
@@ -145,7 +134,7 @@ export function useCVWizard() {
   const nextStep = useCallback(() => {
     setState((prev) => ({
       ...prev,
-      currentStep: Math.min(prev.currentStep + 1, 5) as WizardStep,
+      currentStep: Math.min(prev.currentStep + 1, 3) as WizardStep,
       error: null,
     }));
   }, []);
@@ -230,69 +219,7 @@ export function useCVWizard() {
     }
   }, []);
 
-  // Gap Analysis
-  const analyzeGapsAction = useCallback(async () => {
-    if (!state.cvFormData || !state.jobPosting) {
-      setState((prev) => ({
-        ...prev,
-        error: "Missing CV data or job posting",
-      }));
-      return;
-    }
-
-    setState((prev) => ({ ...prev, isAnalyzingGaps: true, error: null }));
-
-    try {
-      const cv = stripFormIds(state.cvFormData);
-      const formData = new FormData();
-      formData.set("cv", JSON.stringify(cv));
-      formData.set("job", JSON.stringify(state.jobPosting));
-
-      const result = await analyzeGaps({ success: false }, formData);
-
-      if (result.success && result.data) {
-        setState((prev) => ({
-          ...prev,
-          gapAnalysis: result.data!,
-          selectedGaps: result.data!.gapAnalysis, // Select all by default
-          isAnalyzingGaps: false,
-          currentStep: 3,
-          error: null,
-        }));
-      } else {
-        setState((prev) => ({
-          ...prev,
-          isAnalyzingGaps: false,
-          error: result.error || "Failed to analyze gaps",
-        }));
-      }
-    } catch (error) {
-      setState((prev) => ({
-        ...prev,
-        isAnalyzingGaps: false,
-        error: error instanceof Error ? error.message : "An unexpected error occurred",
-      }));
-    }
-  }, [state.cvFormData, state.jobPosting]);
-
-  const setSelectedGaps = useCallback((gaps: string[]) => {
-    setState((prev) => ({ ...prev, selectedGaps: gaps }));
-  }, []);
-
-  const toggleGap = useCallback((gap: string) => {
-    setState((prev) => ({
-      ...prev,
-      selectedGaps: prev.selectedGaps.includes(gap)
-        ? prev.selectedGaps.filter((g) => g !== gap)
-        : [...prev.selectedGaps, gap],
-    }));
-  }, []);
-
   // Optimization Settings
-  const setMode = useCallback((mode: OptimizationMode) => {
-    setState((prev) => ({ ...prev, mode }));
-  }, []);
-
   const setContext = useCallback((context: string) => {
     setState((prev) => ({ ...prev, context }));
   }, []);
@@ -301,19 +228,9 @@ export function useCVWizard() {
     setState((prev) => ({ ...prev, template }));
   }, []);
 
-  // Optimize CV
+  // Optimize CV (runs gap analysis internally and fully optimizes)
   const optimizeCVAction = useCallback(async () => {
-    console.log("[OptimizeCV] Starting optimization...", {
-      hasCVFormData: !!state.cvFormData,
-      hasJobPosting: !!state.jobPosting,
-      mode: state.mode,
-    });
-
     if (!state.cvFormData || !state.jobPosting) {
-      console.log("[OptimizeCV] Missing data:", {
-        cvFormData: state.cvFormData,
-        jobPosting: state.jobPosting,
-      });
       setState((prev) => ({
         ...prev,
         error: "Missing CV data or job posting",
@@ -328,24 +245,18 @@ export function useCVWizard() {
       const formData = new FormData();
       formData.set("cv", JSON.stringify(cv));
       formData.set("job", JSON.stringify(state.jobPosting));
-      formData.set("mode", state.mode);
       if (state.context) {
         formData.set("context", state.context);
       }
-      if (state.selectedGaps.length > 0) {
-        formData.set("gaps", JSON.stringify(state.selectedGaps));
-      }
 
-      console.log("[OptimizeCV] Calling server action...");
-      const result = await optimizeCV({ success: false }, formData);
-      console.log("[OptimizeCV] Server action result:", result);
+      const result = await optimizeCVUnified({ success: false }, formData);
 
       if (result.success && result.data) {
         setState((prev) => ({
           ...prev,
           enrichedCV: result.data!,
           isOptimizing: false,
-          currentStep: 5,
+          currentStep: 3,
           error: null,
         }));
       } else {
@@ -356,14 +267,13 @@ export function useCVWizard() {
         }));
       }
     } catch (error) {
-      console.error("[OptimizeCV] Error:", error);
       setState((prev) => ({
         ...prev,
         isOptimizing: false,
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }
-  }, [state.cvFormData, state.jobPosting, state.mode, state.context, state.selectedGaps]);
+  }, [state.cvFormData, state.jobPosting, state.context]);
 
   // Export
   const setFormat = useCallback((format: ExportFormat) => {
@@ -466,12 +376,7 @@ export function useCVWizard() {
     setJobText,
     setJobPosting,
     analyzeJob,
-    // Gap analysis
-    analyzeGaps: analyzeGapsAction,
-    setSelectedGaps,
-    toggleGap,
     // Optimization
-    setMode,
     setContext,
     setTemplate,
     optimizeCV: optimizeCVAction,
@@ -489,4 +394,4 @@ export function useCVWizard() {
 export type CVWizardReturn = ReturnType<typeof useCVWizard>;
 
 // Re-export types for convenience
-export type { OptimizationMode, TemplateType, ExportFormat, WizardStep };
+export type { TemplateType, ExportFormat, WizardStep };

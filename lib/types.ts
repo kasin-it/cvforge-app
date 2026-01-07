@@ -36,20 +36,12 @@ export type CVFormData = Omit<SchemaCV, "experience" | "education" | "projects" 
 };
 
 // Optimization Types
-export type OptimizationMode = "rephrase" | "enhance" | "tailor";
-
 export type TemplateType = "modern" | "minimal";
 
 export type ExportFormat = "pdf" | "html";
 
-export type OptimizationSettings = {
-  mode: OptimizationMode;
-  context: string;
-  template: TemplateType;
-};
-
-// Wizard State (5 steps: CV Input, Job Posting, Gap Analysis, Optimization, Preview)
-export type WizardStep = 1 | 2 | 3 | 4 | 5;
+// Wizard State (3 steps: CV Input, Job Posting, Preview)
+export type WizardStep = 1 | 2 | 3;
 
 export type JobInputMethod = "url" | "text" | null;
 
@@ -60,7 +52,6 @@ export type WizardState = {
   jobText: string;
   jobPosting: import("@/schema").JobPosting | null;
   isAnalyzing: boolean;
-  mode: OptimizationMode;
   context: string;
   template: TemplateType;
   enrichedCV: import("@/schema").EnrichedCV | null;

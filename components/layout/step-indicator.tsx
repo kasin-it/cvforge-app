@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { WizardStep } from "@/lib/types";
-import { FileText, Briefcase, Search, Wand2, Download } from "lucide-react";
+import { FileText, Briefcase, Download } from "lucide-react";
 
 type StepIndicatorProps = {
   currentStep: WizardStep;
@@ -12,9 +12,7 @@ type StepIndicatorProps = {
 const steps = [
   { number: 1 as const, label: "CV Input", icon: FileText },
   { number: 2 as const, label: "Job Posting", icon: Briefcase },
-  { number: 3 as const, label: "Gap Analysis", icon: Search },
-  { number: 4 as const, label: "Optimize", icon: Wand2 },
-  { number: 5 as const, label: "Export", icon: Download },
+  { number: 3 as const, label: "Preview", icon: Download },
 ];
 
 export function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CVWizardReturn } from "@/hooks/use-cv-wizard";
@@ -21,6 +21,8 @@ type CVInputStepProps = {
 
 export function CVInputStep({ wizard }: CVInputStepProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isResettingRef = useRef(false);
+  const [activeTab, setActiveTab] = useState<"manual" | "import">("manual");
 
   const form = useForm<CVFormValues>({
     resolver: zodResolver(cvFormSchema),
@@ -58,11 +60,24 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     name: "blogPosts" as "experience", // Type hack for nullable array
   });
 
-  // Save form data to wizard state on blur/submit only (not on every change)
-  // Using watch with subscription to avoid infinite loops
+  // Sync form with wizard state when navigating back to this step
+  useEffect(() => {
+    const wizardData = wizard.cvFormData;
+    if (wizardData && !isResettingRef.current) {
+      isResettingRef.current = true;
+      form.reset(wizardData);
+      Promise.resolve().then(() => {
+        isResettingRef.current = false;
+      });
+    }
+  }, [wizard.cvFormData, form]);
+
+  // Save form data to wizard state on change (skip during reset to avoid loops)
   useEffect(() => {
     const subscription = form.watch((data) => {
-      wizard.setCVFormData(data as CVFormValues);
+      if (!isResettingRef.current) {
+        wizard.setCVFormData(data as CVFormValues);
+      }
     });
     return () => subscription.unsubscribe();
   }, [form, wizard.setCVFormData]);
@@ -95,6 +110,8 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               id: wizard.generateId(),
             })) ?? null,
           });
+          // Switch to edit tab after successful import
+          setActiveTab("manual");
         }
       };
       reader.readAsText(file);
@@ -190,7 +207,7 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
       description="Enter your professional information or import from JSON"
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Tabs defaultValue="manual" className="w-full">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "manual" | "import")} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="manual">Edit Manually</TabsTrigger>
             <TabsTrigger value="import">Import JSON</TabsTrigger>
@@ -676,6 +693,24 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                       placeholder="Add a certification..."
                     />
                   )}
+                />
+              </div>
+            </CollapsibleSection>
+
+            {/* Additional Context for Optimization */}
+            <CollapsibleSection title="Additional Context" optional defaultOpen={false}>
+              <div className="space-y-2">
+                <Label htmlFor="context">Extra Information for Optimization</Label>
+                <p className="text-sm text-muted-foreground">
+                  Add any information not in your CV that might help tailor your application (e.g., unlisted skills, achievements, or preferences).
+                </p>
+                <Textarea
+                  id="context"
+                  placeholder={`e.g., "I also have experience with GraphQL that's not on my CV. I led a team of 3 on the migration project. Emphasize my performance work."`}
+                  rows={4}
+                  value={wizard.context}
+                  onChange={(e) => wizard.setContext(e.target.value)}
+                  className="resize-none"
                 />
               </div>
             </CollapsibleSection>

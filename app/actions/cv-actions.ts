@@ -4,18 +4,14 @@ import { z } from "zod";
 import {
   cvSchema,
   jobPostingSchema,
-  enrichedCvSchema,
-  enrichmentMetaSchema,
-  type CV,
-  type JobPosting,
   type EnrichedCV,
-  type EnrichmentMeta,
+  type JobPosting,
 } from "@/schema";
 import {
   JobPostingAnalyzerService,
   CvOptimizerService,
   CVRendererService,
-  type OptimizationMode,
+  GapAnalysisService,
 } from "@/services";
 
 // ============================================
@@ -40,12 +36,10 @@ const analyzeJobTextSchema = z.object({
   text: z.string().min(50, "Job description must be at least 50 characters"),
 });
 
-const optimizeCvSchema = z.object({
+const optimizeCvUnifiedSchema = z.object({
   cv: cvSchema,
   job: jobPostingSchema,
-  mode: z.enum(["rephrase", "enhance", "tailor"]).default("enhance"),
   context: z.string().optional(),
-  gaps: z.array(z.string()).optional(),
 });
 
 const renderCvSchema = z.object({
@@ -126,21 +120,22 @@ export async function analyzeJobFromText(
   }
 }
 
-export async function optimizeCV(
+/**
+ * Unified CV optimization that runs gap analysis internally and uses
+ * structured gaps to fully optimize the CV.
+ */
+export async function optimizeCVUnified(
   _prevState: ActionState<EnrichedCV>,
   formData: FormData
 ): Promise<ActionState<EnrichedCV>> {
   try {
-    const gapsRaw = formData.get("gaps");
     const rawData = {
       cv: JSON.parse(formData.get("cv") as string),
       job: JSON.parse(formData.get("job") as string),
-      mode: formData.get("mode") as OptimizationMode,
       context: formData.get("context") ?? undefined,
-      gaps: gapsRaw ? JSON.parse(gapsRaw as string) : undefined,
     };
 
-    const validated = optimizeCvSchema.safeParse(rawData);
+    const validated = optimizeCvUnifiedSchema.safeParse(rawData);
 
     if (!validated.success) {
       return {
@@ -149,11 +144,18 @@ export async function optimizeCV(
       };
     }
 
+    // Step 1: Run gap analysis internally
+    const gapAnalyzer = new GapAnalysisService({ verbose: true });
+    const gapResult = await gapAnalyzer.analyze(validated.data.cv, validated.data.job);
+
+    // Step 2: Get actionable gaps (critical + recommended)
+    const structuredGaps = gapAnalyzer.getActionableGaps(gapResult);
+
+    // Step 3: Run full optimization with structured gaps
     const optimizer = new CvOptimizerService();
     const enrichedCV = await optimizer.enrich(validated.data.cv, validated.data.job, {
-      mode: validated.data.mode,
       context: validated.data.context,
-      gaps: validated.data.gaps,
+      structuredGaps: structuredGaps,
     });
 
     return {
@@ -226,49 +228,6 @@ export async function renderCV(formData: FormData): Promise<{
   }
 }
 
-// ============================================
-// Gap Analysis
-// ============================================
-
-const analyzeGapsSchema = z.object({
-  cv: cvSchema,
-  job: jobPostingSchema,
-});
-
-export async function analyzeGaps(
-  _prevState: ActionState<EnrichmentMeta>,
-  formData: FormData
-): Promise<ActionState<EnrichmentMeta>> {
-  try {
-    const rawData = {
-      cv: JSON.parse(formData.get("cv") as string),
-      job: JSON.parse(formData.get("job") as string),
-    };
-
-    const validated = analyzeGapsSchema.safeParse(rawData);
-
-    if (!validated.success) {
-      return {
-        success: false,
-        error: validated.error.issues[0]?.message || "Invalid input",
-      };
-    }
-
-    const optimizer = new CvOptimizerService();
-    const analysis = await optimizer.analyze(validated.data.cv, validated.data.job);
-
-    return {
-      success: true,
-      data: analysis,
-    };
-  } catch (error) {
-    console.error("Gap analysis error:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to analyze gaps",
-    };
-  }
-}
 
 // ============================================
 // Preview HTML Generation

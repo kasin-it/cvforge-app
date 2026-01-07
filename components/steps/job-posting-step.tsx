@@ -11,20 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ArrowLeft,
-  ArrowRight,
   Link2,
   FileText,
   Loader2,
   CheckCircle2,
   RefreshCw,
-  Briefcase,
-  Building2,
-  Award,
-  MapPin,
-  DollarSign,
-  Clock,
-  Languages,
-  Star,
+  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -70,160 +62,40 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
               </div>
               <div>
                 <h3 className="font-display text-xl font-semibold">{job.title}</h3>
-                <p className="text-muted-foreground">{job.company}</p>
               </div>
-            </div>
-
-            {/* Job details grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-6">
-              <div className="flex items-center gap-2 text-sm">
-                <Award className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Seniority:</span>
-                <span className="font-medium">{job.seniority}</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm">
-                <Briefcase className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Work Model:</span>
-                <span className="font-medium">{job.workModel}</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Experience:</span>
-                <span className="font-medium">{job.experienceYears}+ years</span>
-              </div>
-
-              {job.locations.length > 0 && (
-                <div className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Locations:</span>
-                  <span className="font-medium">{job.locations.join(", ")}</span>
-                </div>
-              )}
-
-              {job.salary && (
-                <div className="flex items-center gap-2 text-sm sm:col-span-2 lg:col-span-3">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Salary:</span>
-                  <span className="font-medium">
-                    {job.salary.range} ({job.salary.contract})
-                  </span>
-                </div>
-              )}
             </div>
 
             <div className="space-y-4 pt-4 border-t border-border">
-              {/* Must Have */}
+              {/* Tags - ATS Keywords */}
+              <div>
+                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary" />
+                  Keywords (ATS Tags)
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {job.tags.map((tag) => (
+                    <Badge key={tag} variant="default">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Skills - Full Requirements */}
               <div>
                 <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-destructive" />
-                  Must Have
+                  Required Skills & Experience
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {job.mustHave.map((skill) => (
-                    <Badge key={skill} variant="default">
+                <ul className="space-y-1">
+                  {job.skills.map((skill, i) => (
+                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <CheckCircle2 className="h-3 w-3 mt-1 text-muted-foreground shrink-0" />
                       {skill}
-                    </Badge>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </div>
-
-              {/* Nice to Have */}
-              {job.niceToHave.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    Nice to Have
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {job.niceToHave.map((skill) => (
-                      <Badge key={skill} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Tech Stack */}
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                  Tech Stack
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {job.techStack.map((tech) => (
-                    <Badge key={tech} variant="outline">
-                      {tech}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              {/* Languages */}
-              {job.languages.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
-                    <Languages className="h-4 w-4" />
-                    Languages Required
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {job.languages.map((lang) => (
-                      <Badge key={lang} variant="outline">
-                        {lang}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Suggested CV Title */}
-              {job.suggestedCvTitle && (
-                <div className="pt-2">
-                  <p className="text-sm text-muted-foreground">
-                    <Star className="h-4 w-4 inline mr-1 text-primary" />
-                    Suggested CV Title:{" "}
-                    <span className="font-medium text-foreground">
-                      {job.suggestedCvTitle}
-                    </span>
-                  </p>
-                </div>
-              )}
-
-              {/* Standout Factors */}
-              {job.standoutFactors.length > 0 && (
-                <div className="pt-2 border-t border-border">
-                  <p className="text-sm font-medium text-foreground mb-2">
-                    What Would Make You Stand Out
-                  </p>
-                  <ul className="space-y-1">
-                    {job.standoutFactors.map((factor, i) => (
-                      <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                        <Star className="h-3 w-3 mt-1 text-primary shrink-0" />
-                        {factor}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Benefits */}
-              {job.benefits.length > 0 && (
-                <div className="pt-2 border-t border-border">
-                  <p className="text-sm font-medium text-foreground mb-2">Benefits</p>
-                  <div className="flex flex-wrap gap-2">
-                    {job.benefits.slice(0, 8).map((benefit) => (
-                      <Badge key={benefit} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        {benefit}
-                      </Badge>
-                    ))}
-                    {job.benefits.length > 8 && (
-                      <Badge variant="outline">+{job.benefits.length - 8} more</Badge>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Action buttons */}
@@ -249,20 +121,41 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
-          <Button onClick={wizard.analyzeGaps} disabled={wizard.isAnalyzingGaps}>
-            {wizard.isAnalyzingGaps ? (
+          <Button onClick={wizard.optimizeCV} disabled={wizard.isOptimizing}>
+            {wizard.isOptimizing ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Analyzing...
+                Optimizing...
               </>
             ) : (
               <>
-                Analyze Gaps
-                <ArrowRight className="h-4 w-4 ml-2" />
+                <Wand2 className="h-4 w-4 mr-2" />
+                Optimize CV
               </>
             )}
           </Button>
         </div>
+
+        {/* Loading overlay */}
+        {wizard.isOptimizing && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <Card className="max-w-md mx-4">
+              <CardContent className="pt-8 pb-8 text-center">
+                <div className="relative w-20 h-20 mx-auto mb-6">
+                  <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                  <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                  <Wand2 className="absolute inset-0 m-auto h-8 w-8 text-primary animate-pulse" />
+                </div>
+                <h3 className="font-display text-xl font-semibold mb-2">
+                  Optimizing Your CV
+                </h3>
+                <p className="text-muted-foreground">
+                  Analyzing gaps and tailoring your CV to match the job requirements...
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </StepContainer>
     );
   }

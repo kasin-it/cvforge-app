@@ -1,5 +1,5 @@
 import { generateText, Output } from "ai";
-import { jobPostingSchema, type JobPosting } from "../schema";
+import { jobPostingExtractSchema, type JobPosting } from "../schema";
 import { JobPostingRetrieverService } from "./job-posting-retriever-service";
 import { openai, DEFAULT_MODEL } from "../lib/openai";
 
@@ -16,9 +16,7 @@ export class JobPostingAnalyzerService {
     this.verbose = config.verbose ?? false;
   }
 
-  async analyzeFromUrl(
-    url: string
-  ): Promise<JobPosting & { sourceUrl: string }> {
+  async analyzeFromUrl(url: string): Promise<JobPosting> {
     this.log(`Fetching: ${url}`);
     const retrieved = await this.retriever.retrieve(url);
     this.log(`Retrieved ${retrieved.content.length} chars`);
@@ -36,20 +34,47 @@ export class JobPostingAnalyzerService {
   private async extractStructuredData(content: string): Promise<JobPosting> {
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
-      output: Output.object({ schema: jobPostingSchema }),
+      output: Output.object({ schema: jobPostingExtractSchema }),
       prompt: `
-Extract comprehensive structured data from this job posting.
+      You are an expert ATS (Applicant Tracking System) parser. Your goal is to analyze the provided job posting and extract data to optimize a candidate's CV.
 
-CRITICAL: Extract EVERY technology, tool, framework, and skill mentioned.
-For keywords array, include ALL terms that would help pass ATS screening.
-Be exhaustive with techStack - include versions, frameworks, libraries, tools.
+Analyze the text and output a JSON object.
 
-Job Posting:
+### EXTRACTION RULES
+
+**1. title**
+*   Extract the specific job role.
+*   **Clean:** Remove buzzwords, location, salary, or internal codes (e.g., convert "URGENT: Senior React Dev - Remote - $150k (J-202)" to "Senior React Developer").
+
+**2. tags** (Atomic Keywords for Matching)
+*   Extract a comprehensive list of atomic keywords (1-3 words max).
+*   **Focus:** Technologies, Tools, Methodologies, Spoken Languages, and Hard Skills.
+*   **Examples:** "TypeScript", "CI/CD", "Scrum", "B2B Sales", "Team Leadership", "English".
+*   **Goal:** These tags will be used for keyword density matching. Be exhaustive.
+
+**3. skills** (Contextual Requirements)
+*   Extract the specific requirements and responsibilities as full, coherent sentences.
+*   **Critical:** You MUST preserve "years of experience", "proficiency levels", and "optional vs. required" context.
+*   **Examples:**
+    *   *Good:* "5+ years of commercial experience with Python and Django."
+    *   *Bad:* "Python" (This belongs in tags).
+
+### RESPONSE FORMAT
+
+Output **only** a raw JSON object matching this structure exactly. Do not include markdown formatting (json) or introductory text.
+
+{
+  "title": "string",
+  "tags": ["string", "string"],
+  "skills": ["string", "string"]
+}
+
+### JOB POSTING CONTENT
 ${content}
+
       `.trim(),
     });
 
-    this.log(`Extracted: ${output.title} @ ${output.company}`);
     return output;
   }
 
@@ -59,4 +84,3 @@ ${content}
     }
   }
 }
-
