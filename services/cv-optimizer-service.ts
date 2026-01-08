@@ -7,13 +7,15 @@ import {
   type GapSuggestion,
 } from "../schema";
 import { buildEnrichmentPrompt } from "./cv-optimizer-service-prompts";
-import { openai, DEFAULT_MODEL } from "../lib/openai";
+import { createOpenAIClient, DEFAULT_MODEL } from "../lib/openai";
 
 export interface EnrichOptions {
   /** Additional context from the user (unlisted skills, achievements, preferences) */
   context?: string;
   /** Structured gap suggestions with priority, location, and actionable instructions */
   structuredGaps?: GapSuggestion[];
+  /** Custom OpenAI API key */
+  apiKey?: string;
 }
 
 export class CvOptimizerService {
@@ -28,6 +30,8 @@ export class CvOptimizerService {
       options.context,
       options.structuredGaps
     );
+
+    const openai = createOpenAIClient(options.apiKey);
 
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
@@ -48,7 +52,7 @@ export class CvOptimizerService {
   }
 
   stripMeta(enriched: EnrichedCV): CV {
-    const { _meta, ...clean } = enriched;
+    const { ...clean } = enriched;
     return clean;
   }
 }

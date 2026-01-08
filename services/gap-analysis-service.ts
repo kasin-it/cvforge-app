@@ -12,17 +12,20 @@ import {
   buildGapAnalysisPrompt,
   filterCVForGapAnalysis,
 } from "./gap-analysis-prompts";
-import { openai, DEFAULT_MODEL } from "../lib/openai";
+import { createOpenAIClient, DEFAULT_MODEL } from "../lib/openai";
 
 export interface GapAnalysisConfig {
   verbose?: boolean;
+  apiKey?: string;
 }
 
 export class GapAnalysisService {
   private readonly verbose: boolean;
+  private readonly apiKey?: string;
 
   constructor(config: GapAnalysisConfig = {}) {
     this.verbose = config.verbose ?? false;
+    this.apiKey = config.apiKey;
   }
 
   /**
@@ -32,15 +35,9 @@ export class GapAnalysisService {
   async analyze(cv: CV, job: JobPosting): Promise<GapAnalysisResult> {
     const filteredCV = filterCVForGapAnalysis(cv);
 
-    this.log("Starting structured gap analysis");
-    this.log(
-      `CV: ${cv.experience.length} experiences, ${cv.skills.length} skills`
-    );
-    this.log(
-      `Job: ${job.title}, ${job.tags.length} tags, ${job.skills.length} requirements`
-    );
-
     const prompt = buildGapAnalysisPrompt(filteredCV, job);
+
+    const openai = createOpenAIClient(this.apiKey);
 
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
@@ -48,14 +45,7 @@ export class GapAnalysisService {
       prompt,
     });
 
-    this.log(`Analysis complete: ${output.suggestions.length} gaps identified`);
-    this.log(`Matched keywords: ${output.matchedKeywords.length}`);
-
-    if (this.verbose) {
-      console.log("[GapAnalysis] === FULL OUTPUT ===");
-      console.log(JSON.stringify(output, null, 2));
-      console.log("[GapAnalysis] === END OUTPUT ===");
-    }
+    console.log("Gap analysis output:", JSON.stringify(output, null, 2));
 
     return output;
   }
@@ -111,11 +101,5 @@ export class GapAnalysisService {
    */
   getMissingGaps(result: GapAnalysisResult): GapSuggestion[] {
     return result.suggestions.filter((s) => s.type === "missing");
-  }
-
-  private log(message: string): void {
-    if (this.verbose) {
-      console.log(`[GapAnalysis] ${message}`);
-    }
   }
 }

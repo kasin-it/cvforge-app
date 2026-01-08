@@ -60,6 +60,7 @@ export async function analyzeJobFromUrl(
     const rawData = {
       url: formData.get("url"),
     };
+    const apiKey = formData.get("apiKey") as string | null;
 
     const validated = analyzeJobUrlSchema.safeParse(rawData);
 
@@ -70,7 +71,7 @@ export async function analyzeJobFromUrl(
       };
     }
 
-    const analyzer = new JobPostingAnalyzerService({ verbose: true });
+    const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromUrl(validated.data.url);
 
     return {
@@ -94,6 +95,7 @@ export async function analyzeJobFromText(
     const rawData = {
       text: formData.get("text"),
     };
+    const apiKey = formData.get("apiKey") as string | null;
 
     const validated = analyzeJobTextSchema.safeParse(rawData);
 
@@ -104,7 +106,7 @@ export async function analyzeJobFromText(
       };
     }
 
-    const analyzer = new JobPostingAnalyzerService({ verbose: true });
+    const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromText(validated.data.text);
 
     return {
@@ -134,6 +136,7 @@ export async function optimizeCVUnified(
       job: JSON.parse(formData.get("job") as string),
       context: formData.get("context") ?? undefined,
     };
+    const apiKey = formData.get("apiKey") as string | null;
 
     const validated = optimizeCvUnifiedSchema.safeParse(rawData);
 
@@ -145,7 +148,7 @@ export async function optimizeCVUnified(
     }
 
     // Step 1: Run gap analysis internally
-    const gapAnalyzer = new GapAnalysisService({ verbose: true });
+    const gapAnalyzer = new GapAnalysisService({ verbose: true, apiKey: apiKey || undefined });
     const gapResult = await gapAnalyzer.analyze(validated.data.cv, validated.data.job);
 
     // Step 2: Get actionable gaps (critical + recommended)
@@ -156,6 +159,7 @@ export async function optimizeCVUnified(
     const enrichedCV = await optimizer.enrich(validated.data.cv, validated.data.job, {
       context: validated.data.context,
       structuredGaps: structuredGaps,
+      apiKey: apiKey || undefined,
     });
 
     return {

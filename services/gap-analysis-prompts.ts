@@ -45,6 +45,47 @@ Applicant Tracking Systems perform LITERAL keyword matching. This means:
 
 When the CV uses a different term than the job posting, flag it as a TERMINOLOGY gap. The candidate must use the EXACT term from the job posting to pass ATS filters.
 
+## ADVANCED MATCHING RULES
+
+### Version-Specific Technologies
+When job posting uses versioned terms, flag terminology gaps:
+- "HTML" in CV ≠ "HTML5" in job → flag as terminology gap
+- "CSS" in CV ≠ "CSS3" in job → flag as terminology gap
+- "JavaScript" in CV ≠ "ES6+" or "ES2015+" in job → flag as terminology gap
+- "Python" in CV ≠ "Python 3" in job → flag as terminology gap
+
+### Testing Ecosystem
+Testing frameworks and libraries are DISTINCT keywords. Match each separately:
+- "Jest" ≠ "React Testing Library" ≠ "Cypress" ≠ "Playwright"
+- If job mentions "React Testing Library" or "RTL" and CV only has "Jest" → flag RTL as MISSING
+- If job mentions both "Jest" and "Cypress", each must be matched individually
+
+### Build Toolchain
+Each build tool is a separate ATS keyword:
+- "Webpack" ≠ "Babel" ≠ "Vite" ≠ "esbuild" ≠ "Rollup"
+- If job lists "Webpack, Babel" and CV has neither → flag BOTH as missing
+
+### Multi-Cloud Requirements
+If job mentions multiple cloud providers, flag EACH missing one:
+- Job wants "AWS, GCP, Azure" but CV only has "AWS" → flag GCP and Azure as missing (nice-to-have)
+- Don't assume familiarity with one cloud means familiarity with others
+
+### Implicit Web Development Skills
+These are commonly required but often missing from CVs. Flag if job posting mentions ANY of these:
+- "Responsive design" / "RWD" / "responsive web design" / "mobile-first"
+- "Cross-browser compatibility" / "cross-browser testing"
+- "Debugging" / "troubleshooting" / "root cause analysis"
+- "Performance optimization" / "web performance" / "Core Web Vitals"
+- "Clean code" / "maintainable code" / "testable code" / "code quality"
+- "Accessibility" / "a11y" / "WCAG" / "screen reader"
+
+### Domain Knowledge
+If job mentions specific industry context, flag as nice-to-have if not in CV:
+- Finance / fintech / banking / stock exchange / trading
+- Healthcare / HIPAA / medical
+- E-commerce / retail / marketplace
+- SaaS / B2B / enterprise software
+
 ## ANALYSIS PROCESS
 
 Follow these steps in order:

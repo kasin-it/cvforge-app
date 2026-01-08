@@ -2,6 +2,7 @@
 
 import { useCVWizard } from "@/hooks/use-cv-wizard";
 import { Header } from "@/components/layout/header";
+import { DisclaimerBanner } from "@/components/layout/disclaimer-banner";
 import { StepIndicator } from "@/components/layout/step-indicator";
 import { CVInputStep } from "@/components/steps/cv-input-step";
 import { JobPostingStep } from "@/components/steps/job-posting-step";
@@ -26,6 +27,7 @@ export function CVWizard() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <DisclaimerBanner />
 
       <main className="flex-1 py-8">
         <div className="max-w-5xl mx-auto px-6">

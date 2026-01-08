@@ -20,6 +20,7 @@
     "ai": "^6.0.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "html2pdf.js": "^0.13.0",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
     "puppeteer": "^24.34.0",

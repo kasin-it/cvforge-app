@@ -1,25 +1,26 @@
 import { generateText, Output } from "ai";
 import { jobPostingExtractSchema, type JobPosting } from "../schema";
 import { JobPostingRetrieverService } from "./job-posting-retriever-service";
-import { openai, DEFAULT_MODEL } from "../lib/openai";
+import { createOpenAIClient, DEFAULT_MODEL } from "../lib/openai";
 
 export interface JobAnalyzerConfig {
   verbose?: boolean;
+  apiKey?: string;
 }
 
 export class JobPostingAnalyzerService {
   private readonly retriever: JobPostingRetrieverService;
   private readonly verbose: boolean;
+  private readonly apiKey?: string;
 
   constructor(config: JobAnalyzerConfig = {}) {
     this.retriever = new JobPostingRetrieverService();
     this.verbose = config.verbose ?? false;
+    this.apiKey = config.apiKey;
   }
 
   async analyzeFromUrl(url: string): Promise<JobPosting> {
-    this.log(`Fetching: ${url}`);
     const retrieved = await this.retriever.retrieve(url);
-    this.log(`Retrieved ${retrieved.content.length} chars`);
 
     const posting = await this.extractStructuredData(retrieved.content);
 
@@ -27,11 +28,12 @@ export class JobPostingAnalyzerService {
   }
 
   async analyzeFromText(content: string): Promise<JobPosting> {
-    this.log(`Analyzing ${content.length} chars`);
     return this.extractStructuredData(content);
   }
 
   private async extractStructuredData(content: string): Promise<JobPosting> {
+    const openai = createOpenAIClient(this.apiKey);
+
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
       output: Output.object({ schema: jobPostingExtractSchema }),
@@ -51,6 +53,15 @@ Analyze the text and output a JSON object.
 *   **Focus:** Technologies, Tools, Methodologies, Spoken Languages, and Hard Skills.
 *   **Examples:** "TypeScript", "CI/CD", "Scrum", "B2B Sales", "Team Leadership", "English".
 *   **Goal:** These tags will be used for keyword density matching. Be exhaustive.
+
+**MUST extract separately (do not combine or skip):**
+*   **Testing frameworks AND libraries individually:** Jest, React Testing Library (RTL), Cypress, Playwright, Mocha, Jasmine, Testing Library
+*   **Build tools individually:** Webpack, Babel, Vite, esbuild, Rollup, Parcel, Turbopack
+*   **Versioned technologies when specified:** HTML5, CSS3, ES6+, Python 3, Java 17, .NET 6, etc.
+*   **Implicit web skills when mentioned:** "responsive design", "RWD", "cross-browser compatibility", "mobile-first", "accessibility", "a11y"
+*   **Cloud platforms individually:** AWS, GCP, Azure, DigitalOcean (not just "cloud")
+*   **Quality/practice keywords:** "performance optimization", "debugging", "code quality", "clean code", "maintainable code", "testable code"
+*   **Domain context:** finance, fintech, banking, healthcare, e-commerce, SaaS, B2B, enterprise
 
 **3. skills** (Contextual Requirements)
 *   Extract the specific requirements and responsibilities as full, coherent sentences.
@@ -76,11 +87,5 @@ ${content}
     });
 
     return output;
-  }
-
-  private log(message: string): void {
-    if (this.verbose) {
-      console.log(`[JobAnalyzer] ${message}`);
-    }
   }
 }

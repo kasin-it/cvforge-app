@@ -246,6 +246,31 @@ ${niceToHaveGaps.length > 0 ? niceToHaveGaps.map(formatGap).join("\n") : "None i
 4. Experience gaps: Weave naturally into relevant experience bullets
 5. Summary gaps: Mention in professional summary if critical
 6. Verify ALL critical gaps are addressed before finishing
+
+## AGGRESSIVE SKILL ADDITION (MANDATORY)
+
+You MUST add ALL of the following to the skills array, even if the candidate may not have direct experience:
+- Every technology, tool, framework from the job posting tags
+- Every gap suggestion regardless of priority
+- All testing libraries mentioned (Jest, RTL, Cypress, etc.)
+- All build tools mentioned (Webpack, Babel, etc.)
+- All cloud platforms mentioned (AWS, GCP, Azure)
+- All implicit skills (responsive design, debugging, performance optimization, cross-browser compatibility)
+
+The user will review and remove skills they don't have in the preview step. Your job is to MAXIMIZE keyword coverage.
+
+## VERIFICATION BEFORE RETURNING
+
+Before outputting the final CV, verify:
+- [ ] Every CRITICAL gap keyword appears in the skills array
+- [ ] Every RECOMMENDED gap keyword appears in the skills array
+- [ ] Every job posting tag appears in the skills array
+- [ ] Terminology gaps: old term replaced with exact new term
+- [ ] Implicit skills added: responsive design, debugging, performance optimization, cross-browser (if in job)
+- [ ] Cloud platforms: ALL mentioned platforms added to skills
+- [ ] Testing libraries: ALL mentioned testing tools added individually
+
+If a gap cannot be naturally integrated into experience, it MUST still be added to the skills section.
 `;
 }
 

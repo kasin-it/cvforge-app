@@ -1,13 +1,22 @@
 import { z } from "zod";
 
+// Optional URL that must start with http:// or https:// if provided
+const optionalUrl = z
+  .string()
+  .nullable()
+  .refine(
+    (val) => !val || val.startsWith("http://") || val.startsWith("https://"),
+    { message: "URL must start with http:// or https://" }
+  );
+
 // Contact form schema
 export const contactFormSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   phone: z.string().nullable(),
   location: z.string().nullable(),
-  linkedin: z.string().nullable(),
-  github: z.string().nullable(),
-  website: z.string().nullable(),
+  linkedin: optionalUrl,
+  github: optionalUrl,
+  website: optionalUrl,
 });
 
 // Experience form schema (with ID for form management)
@@ -32,7 +41,7 @@ export const projectFormSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Project name is required"),
   description: z.string().min(1, "Description is required"),
-  url: z.string().nullable(),
+  url: optionalUrl,
   technologies: z.array(z.string()),
 });
 

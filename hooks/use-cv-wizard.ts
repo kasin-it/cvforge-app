@@ -4,15 +4,16 @@ import { useState, useCallback, useEffect } from "react";
 import type { JobPosting, EnrichedCV, CV } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
 import type { TemplateType, ExportFormat, WizardStep } from "@/lib/types";
+import { useApiKey } from "@/contexts/api-key-context";
 
 const STORAGE_KEY = "cvforge_cv_data";
 import {
   analyzeJobFromUrl,
   analyzeJobFromText,
   optimizeCVUnified,
-  renderCV,
 } from "@/app/actions/cv-actions";
 import { stripFormIds, addFormIds } from "@/lib/form-helpers";
+import { downloadHTML, downloadPDF } from "@/lib/cv-renderer-client";
 
 export type WizardState = {
   currentStep: WizardStep;
@@ -109,6 +110,7 @@ function clearLocalStorage() {
 export function useCVWizard() {
   const [state, setState] = useState<WizardState>(initialState);
   const [isHydrated, setIsHydrated] = useState(false);
+  const { apiKey } = useApiKey();
 
   // Load saved CV data from localStorage on mount
   useEffect(() => {
@@ -128,7 +130,21 @@ export function useCVWizard() {
 
   // Navigation
   const goToStep = useCallback((step: WizardStep) => {
-    setState((prev) => ({ ...prev, currentStep: step, error: null }));
+    setState((prev) => {
+      // Clear job posting data when navigating to step 1
+      if (step === 1) {
+        return {
+          ...prev,
+          currentStep: step,
+          jobUrl: "",
+          jobText: "",
+          jobPosting: null,
+          enrichedCV: null,
+          error: null,
+        };
+      }
+      return { ...prev, currentStep: step, error: null };
+    });
   }, []);
 
   const nextStep = useCallback(() => {
@@ -140,11 +156,26 @@ export function useCVWizard() {
   }, []);
 
   const prevStep = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      currentStep: Math.max(prev.currentStep - 1, 1) as WizardStep,
-      error: null,
-    }));
+    setState((prev) => {
+      const newStep = Math.max(prev.currentStep - 1, 1) as WizardStep;
+      // Clear job posting data when going back to step 1
+      if (newStep === 1) {
+        return {
+          ...prev,
+          currentStep: newStep,
+          jobUrl: "",
+          jobText: "",
+          jobPosting: null,
+          enrichedCV: null,
+          error: null,
+        };
+      }
+      return {
+        ...prev,
+        currentStep: newStep,
+        error: null,
+      };
+    });
   }, []);
 
   // CV Form Data
@@ -172,6 +203,9 @@ export function useCVWizard() {
 
     try {
       const formData = new FormData();
+      if (apiKey) {
+        formData.set("apiKey", apiKey);
+      }
 
       if (input.url) {
         formData.set("url", input.url);
@@ -217,7 +251,7 @@ export function useCVWizard() {
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }
-  }, []);
+  }, [apiKey]);
 
   // Optimization Settings
   const setContext = useCallback((context: string) => {
@@ -248,6 +282,9 @@ export function useCVWizard() {
       if (state.context) {
         formData.set("context", state.context);
       }
+      if (apiKey) {
+        formData.set("apiKey", apiKey);
+      }
 
       const result = await optimizeCVUnified({ success: false }, formData);
 
@@ -273,49 +310,25 @@ export function useCVWizard() {
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }
-  }, [state.cvFormData, state.jobPosting, state.context]);
+  }, [state.cvFormData, state.jobPosting, state.context, apiKey]);
 
   // Export
   const setFormat = useCallback((format: ExportFormat) => {
     setState((prev) => ({ ...prev, format }));
   }, []);
 
-  // Download CV
+  // Download CV (client-side rendering)
   const downloadCV = useCallback(async () => {
     if (!state.enrichedCV) return;
 
     try {
-      const formData = new FormData();
       // Strip meta for export
       const { _meta, ...cvWithoutMeta } = state.enrichedCV;
-      formData.set("cv", JSON.stringify(cvWithoutMeta));
-      formData.set("template", state.template);
-      formData.set("format", state.format);
 
-      const result = await renderCV(formData);
-
-      if (result.success && result.data) {
-        // Create blob from base64
-        const byteCharacters = atob(result.data.blob);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
-        }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: result.data.contentType });
-
-        // Download
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = result.data.filename;
-        link.click();
-        URL.revokeObjectURL(url);
+      if (state.format === "html") {
+        downloadHTML(cvWithoutMeta, state.template);
       } else {
-        setState((prev) => ({
-          ...prev,
-          error: result.error || "Failed to download CV",
-        }));
+        await downloadPDF(cvWithoutMeta, state.template);
       }
     } catch (error) {
       setState((prev) => ({

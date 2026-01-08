@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
+import { ApiKeyProvider } from "@/contexts/api-key-context";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -29,7 +30,7 @@ export default function RootLayout({
       <body
         className={`${playfair.variable} ${dmSans.variable} font-sans antialiased`}
       >
-        {children}
+        <ApiKeyProvider>{children}</ApiKeyProvider>
       </body>
     </html>
   );

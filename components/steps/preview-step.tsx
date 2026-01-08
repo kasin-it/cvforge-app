@@ -23,6 +23,7 @@ import {
   Save,
   Plus,
   GripVertical,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +73,24 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
       title="Your Optimized CV"
       description="Review the optimization results and export your CV"
     >
+      {/* Warning Banner */}
+      <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border border-orange-200/60 dark:border-orange-800/40">
+        <div className="flex gap-3">
+          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+            <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">
+              Review Carefully Before Using
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              The optimizer is aggressive and may add or enhance content beyond your actual experience.
+              Please review each section and <span className="font-medium text-foreground">remove anything that doesn't accurately reflect your background</span>.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-5">
         {/* CV Preview */}
         <div className="lg:col-span-3">

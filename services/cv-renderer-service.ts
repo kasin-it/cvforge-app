@@ -34,6 +34,7 @@ export class CVRendererService {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
+      tagged: true,
     });
 
     await page.close();
