@@ -11,18 +11,13 @@ import { PreviewStep } from "@/components/steps/preview-step";
 export function CVWizard() {
   const wizard = useCVWizard();
 
-  const renderStep = () => {
-    switch (wizard.currentStep) {
-      case 1:
-        return <CVInputStep wizard={wizard} />;
-      case 2:
-        return <JobPostingStep wizard={wizard} />;
-      case 3:
-        return <PreviewStep wizard={wizard} />;
-      default:
-        return null;
-    }
+  const stepComponents: Record<number, React.ReactNode> = {
+    1: <CVInputStep wizard={wizard} />,
+    2: <JobPostingStep wizard={wizard} />,
+    3: <PreviewStep wizard={wizard} />,
   };
+
+  const renderStep = () => stepComponents[wizard.currentStep] ?? null;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,9 +37,7 @@ export function CVWizard() {
             />
           </div>
 
-          <div key={wizard.currentStep}>
-            {renderStep()}
-          </div>
+          <div key={wizard.currentStep}>{renderStep()}</div>
         </div>
       </main>
 

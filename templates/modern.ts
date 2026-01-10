@@ -1,4 +1,5 @@
 import type { CV } from "../schema";
+import { escapeHtml, sanitizeUrl } from "./utils";
 
 export function modern(data: CV): string {
   return `<!DOCTYPE html>
@@ -223,27 +224,27 @@ export function modern(data: CV): string {
 <body>
     <div class="header">
         <div>
-            <div class="name">${data.name}</div>
-            <div class="title">${data.title}</div>
+            <div class="name">${escapeHtml(data.name)}</div>
+            <div class="title">${escapeHtml(data.title)}</div>
             ${(() => {
               const links = [
-                data.contact.linkedin ? `<a href="${data.contact.linkedin}">LinkedIn</a>` : null,
-                data.contact.github ? `<a href="${data.contact.github}">GitHub</a>` : null,
-                data.contact.website ? `<a href="${data.contact.website}">Website</a>` : null,
+                data.contact.linkedin ? `<a href="${sanitizeUrl(data.contact.linkedin)}">LinkedIn</a>` : null,
+                data.contact.github ? `<a href="${sanitizeUrl(data.contact.github)}">GitHub</a>` : null,
+                data.contact.website ? `<a href="${sanitizeUrl(data.contact.website)}">Website</a>` : null,
               ].filter(Boolean);
               return links.length > 0 ? `<div class="links">${links.join(" · ")}</div>` : "";
             })()}
         </div>
         <div class="contact">
-            <div>${data.contact.email}</div>
-            ${data.contact.phone ? `<div>${data.contact.phone}</div>` : ""}
-            <div>${data.contact.location}</div>
+            <div>${escapeHtml(data.contact.email)}</div>
+            ${data.contact.phone ? `<div>${escapeHtml(data.contact.phone)}</div>` : ""}
+            <div>${escapeHtml(data.contact.location)}</div>
         </div>
     </div>
 
     <div class="section">
         <div class="section-title">Summary</div>
-        <div class="summary">${data.summary}</div>
+        <div class="summary">${escapeHtml(data.summary)}</div>
     </div>
 
     <div class="section">
@@ -254,13 +255,13 @@ export function modern(data: CV): string {
             <div class="job">
                 <div class="job-header">
                     <div>
-                        <span class="job-role">${job.role}</span>
-                        <span class="job-company"> · ${job.company}</span>
+                        <span class="job-role">${escapeHtml(job.role)}</span>
+                        <span class="job-company"> · ${escapeHtml(job.company)}</span>
                     </div>
-                    <span class="job-period">${job.period}</span>
+                    <span class="job-period">${escapeHtml(job.period)}</span>
                 </div>
                 <ul class="bullets">
-                    ${job.bullets.map((b) => `<li>${b}</li>`).join("")}
+                    ${job.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join("")}
                 </ul>
             </div>
         `
@@ -278,11 +279,11 @@ export function modern(data: CV): string {
             (project) => `
             <div class="project">
                 <div class="project-header">
-                    <span class="project-name">${project.name}</span>
-                    ${project.url ? `<a href="${project.url}" class="project-link">${project.url}</a>` : ""}
+                    <span class="project-name">${escapeHtml(project.name)}</span>
+                    ${project.url ? `<a href="${sanitizeUrl(project.url)}" class="project-link">${escapeHtml(project.url)}</a>` : ""}
                 </div>
-                <div class="project-description">${project.description}</div>
-                ${project.technologies.length > 0 ? `<div class="project-tech">${project.technologies.join(" · ")}</div>` : ""}
+                <div class="project-description">${escapeHtml(project.description)}</div>
+                ${project.technologies.length > 0 ? `<div class="project-tech">${project.technologies.map((t) => escapeHtml(t)).join(" · ")}</div>` : ""}
             </div>
         `
           )
@@ -301,8 +302,8 @@ export function modern(data: CV): string {
           .map(
             (post) => `
             <div class="blog-post">
-                <a href="${post.url}" class="blog-post-name">${post.name}</a>
-                <span class="blog-post-description">${post.description}</span>
+                <a href="${sanitizeUrl(post.url)}" class="blog-post-name">${escapeHtml(post.name)}</a>
+                <span class="blog-post-description">${escapeHtml(post.description)}</span>
             </div>
         `
           )
@@ -314,7 +315,7 @@ export function modern(data: CV): string {
 
     <div class="section">
         <div class="section-title">Skills</div>
-        <div class="skills-list">${data.skills.join(" · ")}</div>
+        <div class="skills-list">${data.skills.map((s) => escapeHtml(s)).join(" · ")}</div>
     </div>
 
     ${
@@ -327,10 +328,10 @@ export function modern(data: CV): string {
             (edu) => `
             <div class="edu-item">
                 <div>
-                    <span class="edu-degree">${edu.degree}</span>
-                    <span class="edu-school"> · ${edu.school}</span>
+                    <span class="edu-degree">${escapeHtml(edu.degree)}</span>
+                    <span class="edu-school"> · ${escapeHtml(edu.school)}</span>
                 </div>
-                <span class="job-period">${edu.year}</span>
+                <span class="job-period">${escapeHtml(edu.year)}</span>
             </div>
         `
           )
@@ -345,7 +346,7 @@ export function modern(data: CV): string {
         ? `
     <div class="section">
         <div class="section-title">Languages</div>
-        <div class="skills-list">${data.languages.join(" · ")}</div>
+        <div class="skills-list">${data.languages.map((l) => escapeHtml(l)).join(" · ")}</div>
     </div>
     `
         : ""

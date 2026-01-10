@@ -155,7 +155,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
             </div>
             <h3 className="font-display text-lg font-semibold mb-2">Paste URL</h3>
             <p className="text-sm text-muted-foreground text-center">
-              We'll fetch and analyze the job posting automatically
+              We&apos;ll fetch and analyze the job posting automatically
             </p>
           </button>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cvSchema, type JobPosting, type EnrichedCV } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
 import type { TemplateType, ExportFormat, WizardStep } from "@/lib/types";
@@ -10,6 +10,7 @@ import {
   analyzeJobFromText,
   optimizeCVUnified,
 } from "@/app/actions/cv-actions";
+import { omit } from "remeda";
 import { stripFormIds, addFormIds, generateId } from "@/lib/form-helpers";
 import { downloadHTML, downloadPDF } from "@/lib/cv-renderer-client";
 
@@ -107,10 +108,13 @@ function clearLocalStorage() {
   }
 }
 
+const DEBOUNCE_DELAY = 500; // ms
+
 export function useCVWizard() {
   const [state, setState] = useState<WizardState>(initialState);
   const [isHydrated, setIsHydrated] = useState(false);
   const { apiKey } = useApiKey();
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load saved CV data from localStorage on mount
   useEffect(() => {
@@ -121,11 +125,26 @@ export function useCVWizard() {
     setIsHydrated(true);
   }, []);
 
-  // Save CV data to localStorage whenever it changes
+  // Save CV data to localStorage with debouncing (saves after 500ms of no changes)
   useEffect(() => {
-    if (isHydrated && state.cvFormData) {
-      saveToLocalStorage(state.cvFormData);
+    if (!isHydrated || !state.cvFormData) return;
+
+    // Clear any pending save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+
+    // Schedule a new save
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToLocalStorage(state.cvFormData!);
+    }, DEBOUNCE_DELAY);
+
+    // Cleanup on unmount or next change
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [state.cvFormData, isHydrated]);
 
   // Navigation
@@ -327,7 +346,7 @@ export function useCVWizard() {
 
     try {
       // Strip meta for export
-      const { _meta, ...cvWithoutMeta } = state.enrichedCV;
+      const cvWithoutMeta = omit(state.enrichedCV, ["_meta"]);
 
       if (state.format === "html") {
         await downloadHTML(cvWithoutMeta, state.template);

@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useRef, useEffect, useState, useCallback } from "react";
+import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
+import { useDebouncedCallback } from "@/hooks/use-debounce";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CVWizardReturn } from "@/hooks/use-cv-wizard";
 import { cvFormSchema, type CVFormValues } from "@/lib/form-schemas";
@@ -13,7 +14,14 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { TagInput } from "@/components/ui/tag-input";
-import { ArrowRight, Download, Upload, X, GripVertical, Trash2 } from "lucide-react";
+import {
+  ArrowRight,
+  Download,
+  Upload,
+  X,
+  GripVertical,
+  Trash2,
+} from "lucide-react";
 
 type CVInputStepProps = {
   wizard: CVWizardReturn;
@@ -34,12 +42,15 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     control,
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors },
   } = form;
 
-  // Field arrays for dynamic sections
+  const formValues = useWatch({ control });
+  const watchedEducation = useWatch({ control, name: "education" });
+  const watchedProjects = useWatch({ control, name: "projects" });
+  const watchedBlogPosts = useWatch({ control, name: "blogPosts" });
+
   const experienceArray = useFieldArray({
     control,
     name: "experience",
@@ -47,20 +58,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
   const educationArray = useFieldArray({
     control,
-    name: "education" as "experience", // Type hack for nullable array
+    name: "education" as const,
   });
 
-  const projectsArray = useFieldArray({
-    control,
-    name: "projects" as "experience", // Type hack for nullable array
-  });
-
-  const blogPostsArray = useFieldArray({
-    control,
-    name: "blogPosts" as "experience", // Type hack for nullable array
-  });
-
-  // Sync form with wizard state when navigating back to this step
   useEffect(() => {
     const wizardData = wizard.cvFormData;
     if (wizardData && !isResettingRef.current) {
@@ -72,15 +72,19 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     }
   }, [wizard.cvFormData, form]);
 
-  // Save form data to wizard state on change (skip during reset to avoid loops)
+  // Debounce syncing form values to wizard state (300ms delay)
+  const debouncedSetCVFormData = useDebouncedCallback(
+    (data: CVFormValues) => {
+      wizard.setCVFormData(data);
+    },
+    300
+  );
+
   useEffect(() => {
-    const subscription = form.watch((data) => {
-      if (!isResettingRef.current) {
-        wizard.setCVFormData(data as CVFormValues);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form, wizard.setCVFormData]);
+    if (!isResettingRef.current && formValues) {
+      debouncedSetCVFormData(formValues as CVFormValues);
+    }
+  }, [formValues, debouncedSetCVFormData]);
 
   const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -140,7 +144,7 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
   // Add education
   const addEducation = () => {
-    const currentEducation = watch("education") || [];
+    const currentEducation = watchedEducation || [];
     setValue("education", [
       ...currentEducation,
       {
@@ -152,9 +156,8 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     ]);
   };
 
-  // Add project
   const addProject = () => {
-    const currentProjects = watch("projects") || [];
+    const currentProjects = watchedProjects || [];
     setValue("projects", [
       ...currentProjects,
       {
@@ -167,9 +170,8 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
     ]);
   };
 
-  // Add blog post
   const addBlogPost = () => {
-    const currentPosts = watch("blogPosts") || [];
+    const currentPosts = watchedBlogPosts || [];
     setValue("blogPosts", [
       ...currentPosts,
       {
@@ -187,7 +189,11 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
       description="Enter your professional information or import from JSON"
     >
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "manual" | "import")} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "manual" | "import")}
+          className="w-full"
+        >
           <TabsList className="mb-6">
             <TabsTrigger value="manual">Edit Manually</TabsTrigger>
             <TabsTrigger value="import">Import JSON</TabsTrigger>
@@ -204,7 +210,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                     {...register("name")}
                   />
                   {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.name.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -215,7 +223,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                     {...register("title")}
                   />
                   {errors.title && (
-                    <p className="text-sm text-destructive">{errors.title.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.title.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -227,7 +237,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                     {...register("contact.email")}
                   />
                   {errors.contact?.email && (
-                    <p className="text-sm text-destructive">{errors.contact.email.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.contact.email.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -246,7 +258,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                     {...register("contact.location")}
                   />
                   {errors.contact?.location && (
-                    <p className="text-sm text-destructive">{errors.contact.location.message}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.contact.location.message}
+                    </p>
                   )}
                 </div>
                 <div className="space-y-2">
@@ -286,7 +300,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                   {...register("summary")}
                 />
                 {errors.summary && (
-                  <p className="text-sm text-destructive">{errors.summary.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.summary.message}
+                  </p>
                 )}
               </div>
             </CollapsibleSection>
@@ -298,7 +314,8 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
             >
               {experienceArray.fields.length === 0 ? (
                 <p className="text-muted-foreground text-sm text-center py-4">
-                  No experience added yet. Click below to add your first position.
+                  No experience added yet. Click below to add your first
+                  position.
                 </p>
               ) : (
                 <div className="space-y-6">
@@ -315,7 +332,10 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                         <X className="h-4 w-4" />
                       </button>
 
-                      <input type="hidden" {...register(`experience.${index}.id`)} />
+                      <input
+                        type="hidden"
+                        {...register(`experience.${index}.id`)}
+                      />
 
                       <div className="grid gap-4 sm:grid-cols-2 mb-4">
                         <div className="space-y-2">
@@ -348,37 +368,45 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                           name={`experience.${index}.bullets`}
                           render={({ field }) => (
                             <div className="space-y-2">
-                              {(field.value || []).map((bullet, bulletIndex) => (
-                                <div key={bulletIndex} className="flex items-center gap-2">
-                                  <GripVertical className="h-4 w-4 text-muted-foreground/50" />
-                                  <Input
-                                    placeholder="Describe an achievement or responsibility..."
-                                    value={bullet}
-                                    onChange={(e) => {
-                                      const newBullets = [...field.value];
-                                      newBullets[bulletIndex] = e.target.value;
-                                      field.onChange(newBullets);
-                                    }}
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      const newBullets = field.value.filter(
-                                        (_, i) => i !== bulletIndex
-                                      );
-                                      field.onChange(newBullets);
-                                    }}
-                                    className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                              {(field.value || []).map(
+                                (bullet, bulletIndex) => (
+                                  <div
+                                    key={bulletIndex}
+                                    className="flex items-center gap-2"
                                   >
-                                    <X className="h-4 w-4" />
-                                  </button>
-                                </div>
-                              ))}
+                                    <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                                    <Input
+                                      placeholder="Describe an achievement or responsibility..."
+                                      value={bullet}
+                                      onChange={(e) => {
+                                        const newBullets = [...field.value];
+                                        newBullets[bulletIndex] =
+                                          e.target.value;
+                                        field.onChange(newBullets);
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const newBullets = field.value.filter(
+                                          (_, i) => i !== bulletIndex
+                                        );
+                                        field.onChange(newBullets);
+                                      }}
+                                      className="p-2 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                )
+                              )}
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => field.onChange([...field.value, ""])}
+                                onClick={() =>
+                                  field.onChange([...field.value, ""])
+                                }
                                 className="text-muted-foreground"
                               >
                                 + Add bullet point
@@ -434,7 +462,10 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                         <X className="h-4 w-4" />
                       </button>
 
-                      <input type="hidden" {...register(`education.${index}.id`)} />
+                      <input
+                        type="hidden"
+                        {...register(`education.${index}.id`)}
+                      />
 
                       <div className="grid gap-4 sm:grid-cols-3">
                         <div className="space-y-2">
@@ -472,13 +503,13 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               onAdd={addProject}
               addLabel="Add another project"
             >
-              {(!watch("projects") || watch("projects")?.length === 0) ? (
+              {!watchedProjects || watchedProjects?.length === 0 ? (
                 <p className="text-muted-foreground text-sm text-center py-4">
                   No projects added yet. Click below to add your first project.
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {(watch("projects") || []).map((proj, index) => (
+                  {(watchedProjects || []).map((proj, index) => (
                     <div
                       key={proj.id}
                       className="relative border border-border rounded-lg p-4 bg-muted/30"
@@ -486,9 +517,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                       <button
                         type="button"
                         onClick={() => {
-                          const current = watch("projects") || [];
+                          const current = watchedProjects || [];
                           const updated = current.filter((_, i) => i !== index);
-                          setValue("projects", updated.length > 0 ? updated : null);
+                          setValue(
+                            "projects",
+                            updated.length > 0 ? updated : null
+                          );
                         }}
                         className="absolute top-3 right-3 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                       >
@@ -502,9 +536,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                             placeholder="My Awesome Project"
                             value={proj.name}
                             onChange={(e) => {
-                              const current = watch("projects") || [];
+                              const current = watchedProjects || [];
                               const updated = [...current];
-                              updated[index] = { ...updated[index], name: e.target.value };
+                              updated[index] = {
+                                ...updated[index],
+                                name: e.target.value,
+                              };
                               setValue("projects", updated);
                             }}
                           />
@@ -515,9 +552,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                             placeholder="https://github.com/..."
                             value={proj.url || ""}
                             onChange={(e) => {
-                              const current = watch("projects") || [];
+                              const current = watchedProjects || [];
                               const updated = [...current];
-                              updated[index] = { ...updated[index], url: e.target.value || null };
+                              updated[index] = {
+                                ...updated[index],
+                                url: e.target.value || null,
+                              };
                               setValue("projects", updated);
                             }}
                           />
@@ -530,9 +570,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                           rows={2}
                           value={proj.description}
                           onChange={(e) => {
-                            const current = watch("projects") || [];
+                            const current = watchedProjects || [];
                             const updated = [...current];
-                            updated[index] = { ...updated[index], description: e.target.value };
+                            updated[index] = {
+                              ...updated[index],
+                              description: e.target.value,
+                            };
                             setValue("projects", updated);
                           }}
                         />
@@ -542,9 +585,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                         <TagInput
                           value={proj.technologies}
                           onChange={(val) => {
-                            const current = watch("projects") || [];
+                            const current = watchedProjects || [];
                             const updated = [...current];
-                            updated[index] = { ...updated[index], technologies: val };
+                            updated[index] = {
+                              ...updated[index],
+                              technologies: val,
+                            };
                             setValue("projects", updated);
                           }}
                           placeholder="Add technology..."
@@ -563,13 +609,13 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               onAdd={addBlogPost}
               addLabel="Add another blog post"
             >
-              {(!watch("blogPosts") || watch("blogPosts")?.length === 0) ? (
+              {!watchedBlogPosts || watchedBlogPosts?.length === 0 ? (
                 <p className="text-muted-foreground text-sm text-center py-4">
                   No blog posts added yet. Click below to add your first post.
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {(watch("blogPosts") || []).map((post, index) => (
+                  {(watchedBlogPosts || []).map((post, index) => (
                     <div
                       key={post.id}
                       className="relative border border-border rounded-lg p-4 bg-muted/30"
@@ -577,9 +623,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                       <button
                         type="button"
                         onClick={() => {
-                          const current = watch("blogPosts") || [];
+                          const current = watchedBlogPosts || [];
                           const updated = current.filter((_, i) => i !== index);
-                          setValue("blogPosts", updated.length > 0 ? updated : null);
+                          setValue(
+                            "blogPosts",
+                            updated.length > 0 ? updated : null
+                          );
                         }}
                         className="absolute top-3 right-3 p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                       >
@@ -593,9 +642,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                             placeholder="How I Built a CV Optimizer"
                             value={post.name}
                             onChange={(e) => {
-                              const current = watch("blogPosts") || [];
+                              const current = watchedBlogPosts || [];
                               const updated = [...current];
-                              updated[index] = { ...updated[index], name: e.target.value };
+                              updated[index] = {
+                                ...updated[index],
+                                name: e.target.value,
+                              };
                               setValue("blogPosts", updated);
                             }}
                           />
@@ -606,9 +658,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                             placeholder="https://blog.example.com/..."
                             value={post.url || ""}
                             onChange={(e) => {
-                              const current = watch("blogPosts") || [];
+                              const current = watchedBlogPosts || [];
                               const updated = [...current];
-                              updated[index] = { ...updated[index], url: e.target.value || null };
+                              updated[index] = {
+                                ...updated[index],
+                                url: e.target.value || null,
+                              };
                               setValue("blogPosts", updated);
                             }}
                           />
@@ -621,9 +676,12 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                           rows={2}
                           value={post.description}
                           onChange={(e) => {
-                            const current = watch("blogPosts") || [];
+                            const current = watchedBlogPosts || [];
                             const updated = [...current];
-                            updated[index] = { ...updated[index], description: e.target.value };
+                            updated[index] = {
+                              ...updated[index],
+                              description: e.target.value,
+                            };
                             setValue("blogPosts", updated);
                           }}
                         />
@@ -643,7 +701,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                   render={({ field }) => (
                     <TagInput
                       value={field.value || []}
-                      onChange={(val) => field.onChange(val.length ? val : null)}
+                      onChange={(val) =>
+                        field.onChange(val.length ? val : null)
+                      }
                       placeholder="Add a language..."
                     />
                   )}
@@ -651,7 +711,11 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Certifications" optional defaultOpen={false}>
+            <CollapsibleSection
+              title="Certifications"
+              optional
+              defaultOpen={false}
+            >
               <div className="space-y-2">
                 <Label>Certifications</Label>
                 <Controller
@@ -660,7 +724,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                   render={({ field }) => (
                     <TagInput
                       value={field.value || []}
-                      onChange={(val) => field.onChange(val.length ? val : null)}
+                      onChange={(val) =>
+                        field.onChange(val.length ? val : null)
+                      }
                       placeholder="Add a certification..."
                     />
                   )}
@@ -668,11 +734,19 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Additional Context" optional defaultOpen={false}>
+            <CollapsibleSection
+              title="Additional Context"
+              optional
+              defaultOpen={false}
+            >
               <div className="space-y-2">
-                <Label htmlFor="context">Extra Information for Optimization</Label>
+                <Label htmlFor="context">
+                  Extra Information for Optimization
+                </Label>
                 <p className="text-sm text-muted-foreground">
-                  Add any information not in your CV that might help tailor your application (e.g., unlisted skills, achievements, or preferences).
+                  Add any information not in your CV that might help tailor your
+                  application (e.g., unlisted skills, achievements, or
+                  preferences).
                 </p>
                 <Textarea
                   id="context"
@@ -696,11 +770,16 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                 className="hidden"
               />
               <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="font-display text-lg font-semibold mb-2">Import CV Data</h3>
+              <h3 className="font-display text-lg font-semibold mb-2">
+                Import CV Data
+              </h3>
               <p className="text-muted-foreground mb-4">
                 Upload a JSON file with your CV data
               </p>
-              <Button type="button" onClick={() => fileInputRef.current?.click()}>
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 Choose File
               </Button>
             </div>
@@ -709,11 +788,20 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
 
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           <div className="flex items-center gap-2">
-            <Button type="button" variant="outline" onClick={wizard.exportCVToJSON}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={wizard.exportCVToJSON}
+            >
               <Download className="h-4 w-4 mr-2" />
               Save as JSON
             </Button>
-            <Button type="button" variant="ghost" onClick={handleClearData} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleClearData}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Clear
             </Button>

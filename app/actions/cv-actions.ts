@@ -180,36 +180,40 @@ export async function renderCV(formData: FormData): Promise<{
   data?: { blob: string; filename: string; contentType: string };
   error?: string;
 }> {
+  const cvString = formData.get("cv");
+  const template = formData.get("template");
+  const format = formData.get("format");
+
+  if (typeof cvString !== "string") {
+    return { success: false, error: "Missing CV data" };
+  }
+
+  let rawData;
   try {
-    const cvString = formData.get("cv");
-    const template = formData.get("template");
-    const format = formData.get("format");
-
-    if (typeof cvString !== "string") {
-      return { success: false, error: "Missing CV data" };
-    }
-
-    const rawData = {
+    rawData = {
       cv: JSON.parse(cvString),
       template,
       format,
     };
+  } catch {
+    return { success: false, error: "Invalid CV data format" };
+  }
 
-    const validated = renderCvSchema.safeParse(rawData);
+  const validated = renderCvSchema.safeParse(rawData);
 
-    if (!validated.success) {
-      return {
-        success: false,
-        error: validated.error.issues[0]?.message || "Invalid input",
-      };
-    }
+  if (!validated.success) {
+    return {
+      success: false,
+      error: validated.error.issues[0]?.message || "Invalid input",
+    };
+  }
 
-    const renderer = new CVRendererService();
+  const renderer = new CVRendererService();
+  try {
     const { cv, template: validatedTemplate, format: validatedFormat } = validated.data;
 
     if (validatedFormat === "html") {
       const html = await renderer.renderHTML(cv, validatedTemplate);
-      await renderer.close();
       return {
         success: true,
         data: {
@@ -221,7 +225,6 @@ export async function renderCV(formData: FormData): Promise<{
     }
 
     const pdf = await renderer.renderPDF(cv, { template: validatedTemplate });
-    await renderer.close();
 
     return {
       success: true,
@@ -237,6 +240,8 @@ export async function renderCV(formData: FormData): Promise<{
       success: false,
       error: error instanceof Error ? error.message : "Failed to render CV",
     };
+  } finally {
+    await renderer.close();
   }
 }
 

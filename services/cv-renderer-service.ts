@@ -28,17 +28,19 @@ export class CVRendererService {
     const browser = await this.getBrowser();
     const page = await browser.newPage();
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    try {
+      await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
-    const pdf = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      tagged: true,
-    });
+      const pdf = await page.pdf({
+        format: "A4",
+        printBackground: true,
+        tagged: true,
+      });
 
-    await page.close();
-
-    return Buffer.from(pdf);
+      return Buffer.from(pdf);
+    } finally {
+      await page.close();
+    }
   }
 
   async close(): Promise<void> {

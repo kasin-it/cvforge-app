@@ -6,7 +6,6 @@ import { CVWizardReturn } from "@/hooks/use-cv-wizard";
 import { EnrichedCV } from "@/schema";
 import { StepContainer } from "@/components/layout/step-container";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -82,7 +81,7 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
               The optimizer is aggressive and may add or enhance content beyond your actual experience.
-              Please review each section and <span className="font-medium text-foreground">remove anything that doesn't accurately reflect your background</span>.
+              Please review each section and <span className="font-medium text-foreground">remove anything that doesn&apos;t accurately reflect your background</span>.
             </p>
           </div>
         </div>
@@ -322,6 +321,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
   };
 
   const addEducation = () => {
+    // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form's watch() is incompatible with React Compiler
     const current = watch("education") || [];
     setValue("education", [
       ...current,
@@ -567,7 +567,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
             ))}
             {(!watch("education") || watch("education")?.length === 0) && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No education added. Click "Add" to add education.
+                No education added. Click &quot;Add&quot; to add education.
               </p>
             )}
           </div>
@@ -632,7 +632,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
                 />
                 <Controller
                   control={control}
-                  name={`projects.${index}.technologies` as any}
+                  name={`projects.${index}.technologies` as const}
                   render={({ field }) => (
                     <TagInput
                       value={field.value || []}
@@ -645,7 +645,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
             ))}
             {(!watch("projects") || watch("projects")?.length === 0) && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No projects added. Click "Add" to add a project.
+                No projects added. Click &quot;Add&quot; to add a project.
               </p>
             )}
           </div>
@@ -711,7 +711,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
             ))}
             {(!watch("blogPosts") || watch("blogPosts")?.length === 0) && (
               <p className="text-sm text-muted-foreground text-center py-4">
-                No blog posts added. Click "Add" to add a blog post.
+                No blog posts added. Click &quot;Add&quot; to add a blog post.
               </p>
             )}
           </div>

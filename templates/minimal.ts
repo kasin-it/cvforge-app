@@ -1,4 +1,5 @@
 import type { CV } from "../schema";
+import { escapeHtml, sanitizeUrl } from "./utils";
 
 export function minimal(data: CV): string {
   return `<!DOCTYPE html>
@@ -225,21 +226,21 @@ export function minimal(data: CV): string {
 </head>
 <body>
     <div class="header">
-        <div class="name">${data.name}</div>
-        <div class="title">${data.title}</div>
+        <div class="name">${escapeHtml(data.name)}</div>
+        <div class="title">${escapeHtml(data.title)}</div>
         <div class="contact-line">
-            <span>${data.contact.email}</span>
-            ${data.contact.phone ? `<span>${data.contact.phone}</span>` : ""}
-            <span>${data.contact.location}</span>
-            ${data.contact.linkedin ? `<span><a href="${data.contact.linkedin}">LinkedIn</a></span>` : ""}
-            ${data.contact.github ? `<span><a href="${data.contact.github}">GitHub</a></span>` : ""}
-            ${data.contact.website ? `<span><a href="${data.contact.website}">Portfolio</a></span>` : ""}
+            <span>${escapeHtml(data.contact.email)}</span>
+            ${data.contact.phone ? `<span>${escapeHtml(data.contact.phone)}</span>` : ""}
+            <span>${escapeHtml(data.contact.location)}</span>
+            ${data.contact.linkedin ? `<span><a href="${sanitizeUrl(data.contact.linkedin)}">LinkedIn</a></span>` : ""}
+            ${data.contact.github ? `<span><a href="${sanitizeUrl(data.contact.github)}">GitHub</a></span>` : ""}
+            ${data.contact.website ? `<span><a href="${sanitizeUrl(data.contact.website)}">Portfolio</a></span>` : ""}
         </div>
     </div>
 
     <div class="section">
         <div class="section-title">Profile</div>
-        <div class="summary">${data.summary}</div>
+        <div class="summary">${escapeHtml(data.summary)}</div>
     </div>
 
     <div class="section">
@@ -250,13 +251,13 @@ export function minimal(data: CV): string {
             <div class="job">
                 <div class="job-header">
                     <div class="job-title-line">
-                        <span class="job-role">${job.role}</span>
-                        <span class="job-period">${job.period}</span>
+                        <span class="job-role">${escapeHtml(job.role)}</span>
+                        <span class="job-period">${escapeHtml(job.period)}</span>
                     </div>
-                    <div class="job-company">${job.company}</div>
+                    <div class="job-company">${escapeHtml(job.company)}</div>
                 </div>
                 <ul class="bullets">
-                    ${job.bullets.map((b) => `<li>${b}</li>`).join("")}
+                    ${job.bullets.map((b) => `<li>${escapeHtml(b)}</li>`).join("")}
                 </ul>
             </div>
         `
@@ -274,11 +275,11 @@ export function minimal(data: CV): string {
             (project) => `
             <div class="project">
                 <div>
-                    <span class="project-name">${project.name}</span>
-                    ${project.url ? `<a href="${project.url}" class="project-link">${project.url}</a>` : ""}
+                    <span class="project-name">${escapeHtml(project.name)}</span>
+                    ${project.url ? `<a href="${sanitizeUrl(project.url)}" class="project-link">${escapeHtml(project.url)}</a>` : ""}
                 </div>
-                <div class="project-description">${project.description}</div>
-                ${project.technologies.length > 0 ? `<div class="project-tech">Technologies: ${project.technologies.join(", ")}</div>` : ""}
+                <div class="project-description">${escapeHtml(project.description)}</div>
+                ${project.technologies.length > 0 ? `<div class="project-tech">Technologies: ${project.technologies.map((t) => escapeHtml(t)).join(", ")}</div>` : ""}
             </div>
         `
           )
@@ -297,8 +298,8 @@ export function minimal(data: CV): string {
           .map(
             (post) => `
             <div class="blog-post">
-                <a href="${post.url}" class="blog-post-title">${post.name}</a>
-                <div class="blog-post-description">${post.description}</div>
+                <a href="${sanitizeUrl(post.url)}" class="blog-post-title">${escapeHtml(post.name)}</a>
+                <div class="blog-post-description">${escapeHtml(post.description)}</div>
             </div>
         `
           )
@@ -310,7 +311,7 @@ export function minimal(data: CV): string {
 
     <div class="section">
         <div class="section-title">Skills</div>
-        <div class="skills-text">${data.skills.join(", ")}</div>
+        <div class="skills-text">${data.skills.map((s) => escapeHtml(s)).join(", ")}</div>
     </div>
 
     <div class="two-column">
@@ -323,8 +324,8 @@ export function minimal(data: CV): string {
               .map(
                 (edu) => `
                 <div class="edu-item">
-                    <div class="edu-degree">${edu.degree}</div>
-                    <div class="edu-details">${edu.school}, ${edu.year}</div>
+                    <div class="edu-degree">${escapeHtml(edu.degree)}</div>
+                    <div class="edu-details">${escapeHtml(edu.school)}, ${escapeHtml(edu.year)}</div>
                 </div>
             `
               )
@@ -339,7 +340,7 @@ export function minimal(data: CV): string {
             ? `
         <div class="section">
             <div class="section-title">Languages</div>
-            <div class="skills-text">${data.languages.join(", ")}</div>
+            <div class="skills-text">${data.languages.map((l) => escapeHtml(l)).join(", ")}</div>
         </div>
         `
             : ""
