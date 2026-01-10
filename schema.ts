@@ -95,53 +95,6 @@ export const enrichmentMetaSchema = z
   })
   .strict();
 
-// ============================================
-// Gap Analysis Schemas (Structured)
-// ============================================
-
-export const gapCategorySchema = z.enum([
-  "technical-skill",
-  "soft-skill",
-  "domain-knowledge",
-  "methodology",
-  "certification",
-  "experience",
-]);
-
-export const gapPrioritySchema = z.enum([
-  "critical",
-  "recommended",
-  "nice-to-have",
-]);
-
-export const gapLocationSchema = z.enum([
-  "skills",
-  "summary",
-  "experience",
-  "projects",
-]);
-
-export const gapTypeSchema = z.enum(["missing", "terminology"]);
-
-export const gapSuggestionSchema = z
-  .object({
-    gap: z.string(),
-    type: gapTypeSchema,
-    category: gapCategorySchema,
-    priority: gapPrioritySchema,
-    locations: z.array(gapLocationSchema),
-    suggestion: z.string(),
-    existingTerm: z.string().nullable(),
-  })
-  .strict();
-
-export const gapAnalysisResultSchema = z
-  .object({
-    suggestions: z.array(gapSuggestionSchema),
-    matchedKeywords: z.array(z.string()),
-  })
-  .strict();
-
 export const enrichedCvSchema = cvSchema
   .extend({
     _meta: enrichmentMetaSchema,
@@ -175,10 +128,3 @@ export type EnrichmentMeta = z.infer<typeof enrichmentMetaSchema>;
 export type EnrichedCV = z.infer<typeof enrichedCvSchema>;
 export type RenderOptions = z.infer<typeof renderOptionsSchema>;
 
-// Gap Analysis Types
-export type GapCategory = z.infer<typeof gapCategorySchema>;
-export type GapPriority = z.infer<typeof gapPrioritySchema>;
-export type GapLocation = z.infer<typeof gapLocationSchema>;
-export type GapType = z.infer<typeof gapTypeSchema>;
-export type GapSuggestion = z.infer<typeof gapSuggestionSchema>;
-export type GapAnalysisResult = z.infer<typeof gapAnalysisResultSchema>;

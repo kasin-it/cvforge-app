@@ -24,6 +24,7 @@ import {
   Plus,
   GripVertical,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -205,9 +206,23 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
                 HTML
               </button>
             </div>
-            <Button className="w-full" size="lg" onClick={wizard.downloadCV}>
-              <Download className="h-4 w-4 mr-2" />
-              Download {wizard.format.toUpperCase()}
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={wizard.downloadCV}
+              disabled={wizard.isDownloading}
+            >
+              {wizard.isDownloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating {wizard.format.toUpperCase()}...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download {wizard.format.toUpperCase()}
+                </>
+              )}
             </Button>
           </div>
         </div>

@@ -8,7 +8,7 @@ export function DisclaimerBanner() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [isDismissed, setIsDismissed] = useState(false);
   const [showKey, setShowKey] = useState(false);
-  const { apiKey, setApiKey, hasValidKey } = useApiKey();
+  const { apiKey, setApiKey, hasValidKey, hasEnvKey } = useApiKey();
 
   if (isDismissed) return null;
 
@@ -56,42 +56,44 @@ export function DisclaimerBanner() {
               }`}
             >
               <div className="overflow-hidden">
-                {/* API Key Input Section */}
-                <div className="mb-4 p-4 rounded-xl bg-card/80 border border-primary/20 shadow-sm">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Key className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-semibold text-foreground">
-                      Enter your OpenAI API Key
-                    </h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <input
-                        type={showKey ? "text" : "password"}
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
-                        placeholder="sk-..."
-                        className="w-full px-3 py-2 pr-10 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowKey(!showKey)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label={showKey ? "Hide API key" : "Show API key"}
-                      >
-                        {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                {/* API Key Input Section - only show if no env key */}
+                {!hasEnvKey && (
+                  <div className="mb-4 p-4 rounded-xl bg-card/80 border border-primary/20 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Key className="w-4 h-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-foreground">
+                        Enter your OpenAI API Key
+                      </h3>
                     </div>
-                    {hasValidKey && (
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-                        <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type={showKey ? "text" : "password"}
+                          value={apiKey}
+                          onChange={(e) => setApiKey(e.target.value)}
+                          placeholder="sk-..."
+                          className="w-full px-3 py-2 pr-10 text-sm rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowKey(!showKey)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                          aria-label={showKey ? "Hide API key" : "Show API key"}
+                        >
+                          {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       </div>
-                    )}
+                      {hasValidKey && (
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                          <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Your key is stored in memory only and cleared when you refresh the page.
+                    </p>
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Your key is stored in memory only and cleared when you refresh the page.
-                  </p>
-                </div>
+                )}
 
                 <div className="grid gap-3 sm:grid-cols-2">
                   {/* Self-host option */}

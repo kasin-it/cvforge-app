@@ -63,12 +63,14 @@ Analyze the text and output a JSON object.
 *   **Quality/practice keywords:** "performance optimization", "debugging", "code quality", "clean code", "maintainable code", "testable code"
 *   **Domain context:** finance, fintech, banking, healthcare, e-commerce, SaaS, B2B, enterprise
 
-**3. skills** (Contextual Requirements)
-*   Extract the specific requirements and responsibilities as full, coherent sentences.
-*   **Critical:** You MUST preserve "years of experience", "proficiency levels", and "optional vs. required" context.
+**3. skills** (Key Requirements - CONCISE)
+*   Extract core requirements as SHORT phrases (not full sentences).
+*   Focus on: years of experience + technology/skill
+*   Keep each skill to under 10 words when possible
 *   **Examples:**
-    *   *Good:* "5+ years of commercial experience with Python and Django."
-    *   *Bad:* "Python" (This belongs in tags).
+    *   *Good:* "5+ years Python/Django experience"
+    *   *Good:* "Strong TypeScript and React skills"
+    *   *Bad:* "We are looking for a candidate with at least 5 years of commercial experience working with Python and the Django framework in a professional environment."
 
 ### RESPONSE FORMAT
 

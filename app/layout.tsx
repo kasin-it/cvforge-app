@@ -25,12 +25,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const hasEnvKey = !!process.env.OPENAI_API_KEY;
+
   return (
     <html lang="en">
       <body
         className={`${playfair.variable} ${dmSans.variable} font-sans antialiased`}
       >
-        <ApiKeyProvider>{children}</ApiKeyProvider>
+        <ApiKeyProvider hasEnvKey={hasEnvKey}>{children}</ApiKeyProvider>
       </body>
     </html>
   );

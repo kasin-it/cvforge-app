@@ -4,55 +4,36 @@ import {
   type CV,
   type JobPosting,
   type EnrichedCV,
-  type GapSuggestion,
 } from "../schema";
-import { buildEnrichmentPrompt } from "./cv-optimizer-service-prompts";
+import { buildOptimizationPrompt } from "./cv-optimizer-service-prompts";
 import { createOpenAIClient, DEFAULT_MODEL } from "../lib/openai";
 
-export interface EnrichOptions {
+export interface OptimizeOptions {
   /** Additional context from the user (unlisted skills, achievements, preferences) */
   context?: string;
-  /** Structured gap suggestions with priority, location, and actionable instructions */
-  structuredGaps?: GapSuggestion[];
   /** Custom OpenAI API key */
   apiKey?: string;
 }
 
 export class CvOptimizerService {
-  async enrich(
+  /**
+   * Optimize CV to match job posting requirements.
+   */
+  async optimize(
     cv: CV,
     job: JobPosting,
-    options: EnrichOptions = {}
+    options: OptimizeOptions = {}
   ): Promise<EnrichedCV> {
-    const prompt = buildEnrichmentPrompt(
-      cv,
-      job,
-      options.context,
-      options.structuredGaps
-    );
+    const prompt = buildOptimizationPrompt(cv, job, options.context);
 
     const openai = createOpenAIClient(options.apiKey);
 
     const { output } = await generateText({
       model: openai(DEFAULT_MODEL),
-      output: Output.object({ schema: enrichedCvSchema }),
       prompt,
+      output: Output.object({ schema: enrichedCvSchema }),
     });
 
     return output;
-  }
-
-  async enrichClean(
-    cv: CV,
-    job: JobPosting,
-    options: EnrichOptions = {}
-  ): Promise<CV> {
-    const enriched = await this.enrich(cv, job, options);
-    return this.stripMeta(enriched);
-  }
-
-  stripMeta(enriched: EnrichedCV): CV {
-    const { ...clean } = enriched;
-    return clean;
   }
 }

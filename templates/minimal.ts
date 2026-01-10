@@ -10,6 +10,14 @@ export function minimal(data: CV): string {
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        @page {
+            margin: 48px 0 0 0;
+        }
+
+        @page :first {
+            margin-top: 0;
+        }
+
         body {
             font-family: 'Source Sans 3', sans-serif;
             font-size: 10.5pt;
@@ -33,6 +41,7 @@ export function minimal(data: CV): string {
             margin-bottom: 28px;
             padding-bottom: 20px;
             border-bottom: 1px solid #222;
+            page-break-inside: avoid;
         }
 
         .name {
@@ -74,6 +83,7 @@ export function minimal(data: CV): string {
             margin-bottom: 12px;
             padding-bottom: 4px;
             border-bottom: 1px solid #ccc;
+            page-break-after: avoid;
         }
 
         .summary {
@@ -84,6 +94,7 @@ export function minimal(data: CV): string {
 
         .job {
             margin-bottom: 20px;
+            page-break-inside: avoid;
         }
 
         .job:last-child {
@@ -135,6 +146,7 @@ export function minimal(data: CV): string {
 
         .project {
             margin-bottom: 16px;
+            page-break-inside: avoid;
         }
 
         .project:last-child {
@@ -166,6 +178,7 @@ export function minimal(data: CV): string {
 
         .blog-post {
             margin-bottom: 12px;
+            page-break-inside: avoid;
         }
 
         .blog-post:last-child {
@@ -184,6 +197,7 @@ export function minimal(data: CV): string {
 
         .edu-item {
             margin-bottom: 8px;
+            page-break-inside: avoid;
         }
 
         .edu-item:last-child {

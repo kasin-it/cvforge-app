@@ -27,6 +27,7 @@ export type WizardState = {
   template: TemplateType;
   enrichedCV: EnrichedCV | null;
   isOptimizing: boolean;
+  isDownloading: boolean;
   format: ExportFormat;
   error: string | null;
 };
@@ -70,6 +71,7 @@ const initialState: WizardState = {
   template: "modern",
   enrichedCV: null,
   isOptimizing: false,
+  isDownloading: false,
   format: "pdf",
   error: null,
 };
@@ -185,7 +187,9 @@ export function useCVWizard() {
 
   // Job Posting Input
   const setJobUrl = useCallback((url: string) => {
-    setState((prev) => ({ ...prev, jobUrl: url, error: null }));
+    // Sanitize URL - strip invisible Unicode characters that can come from copy-paste
+    const sanitizedUrl = url.replace(/[\u200B-\u200D\uFEFF\u00A0]/g, "").trim();
+    setState((prev) => ({ ...prev, jobUrl: sanitizedUrl, error: null }));
   }, []);
 
   const setJobText = useCallback((text: string) => {
@@ -321,18 +325,23 @@ export function useCVWizard() {
   const downloadCV = useCallback(async () => {
     if (!state.enrichedCV) return;
 
+    setState((prev) => ({ ...prev, isDownloading: true, error: null }));
+
     try {
       // Strip meta for export
       const { _meta, ...cvWithoutMeta } = state.enrichedCV;
 
       if (state.format === "html") {
-        downloadHTML(cvWithoutMeta, state.template);
+        await downloadHTML(cvWithoutMeta, state.template);
       } else {
         await downloadPDF(cvWithoutMeta, state.template);
       }
+
+      setState((prev) => ({ ...prev, isDownloading: false }));
     } catch (error) {
       setState((prev) => ({
         ...prev,
+        isDownloading: false,
         error: error instanceof Error ? error.message : "An unexpected error occurred",
       }));
     }

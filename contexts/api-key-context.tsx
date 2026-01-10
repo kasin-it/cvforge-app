@@ -7,15 +7,23 @@ type ApiKeyContextValue = {
   setApiKey: (key: string) => void;
   clearApiKey: () => void;
   hasValidKey: boolean;
+  hasEnvKey: boolean;
 };
 
 const ApiKeyContext = createContext<ApiKeyContextValue | null>(null);
 
-export function ApiKeyProvider({ children }: { children: ReactNode }) {
+type ApiKeyProviderProps = {
+  children: ReactNode;
+  hasEnvKey?: boolean;
+};
+
+export function ApiKeyProvider({ children, hasEnvKey = false }: ApiKeyProviderProps) {
   const [apiKey, setApiKeyState] = useState("");
 
   const setApiKey = useCallback((key: string) => {
-    setApiKeyState(key);
+    // Strip any non-ASCII characters (hidden Unicode chars from copy-paste)
+    const sanitizedKey = key.replace(/[^\x00-\x7F]/g, "").trim();
+    setApiKeyState(sanitizedKey);
   }, []);
 
   const clearApiKey = useCallback(() => {
@@ -23,10 +31,10 @@ export function ApiKeyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Basic validation: OpenAI keys start with "sk-"
-  const hasValidKey = apiKey.startsWith("sk-") && apiKey.length > 20;
+  const hasValidKey = hasEnvKey || (apiKey.startsWith("sk-") && apiKey.length > 20);
 
   return (
-    <ApiKeyContext.Provider value={{ apiKey, setApiKey, clearApiKey, hasValidKey }}>
+    <ApiKeyContext.Provider value={{ apiKey, setApiKey, clearApiKey, hasValidKey, hasEnvKey }}>
       {children}
     </ApiKeyContext.Provider>
   );

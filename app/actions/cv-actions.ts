@@ -11,7 +11,6 @@ import {
   JobPostingAnalyzerService,
   CvOptimizerService,
   CVRendererService,
-  GapAnalysisService,
 } from "@/services";
 
 // ============================================
@@ -56,7 +55,11 @@ export async function analyzeJobFromUrl(
   _prevState: ActionState<JobPosting>,
   formData: FormData
 ): Promise<ActionState<JobPosting>> {
+  const totalStart = performance.now();
+
   try {
+    console.log("[Job Analysis URL] Starting...");
+
     const rawData = {
       url: formData.get("url"),
     };
@@ -71,8 +74,12 @@ export async function analyzeJobFromUrl(
       };
     }
 
+    const analyzeStart = performance.now();
     const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromUrl(validated.data.url);
+
+    console.log(`[Job Analysis URL] Analysis completed: ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`);
+    console.log(`[Job Analysis URL] Total time: ${((performance.now() - totalStart) / 1000).toFixed(2)}s`);
 
     return {
       success: true,
@@ -80,6 +87,7 @@ export async function analyzeJobFromUrl(
     };
   } catch (error) {
     console.error("Job analysis error:", error);
+    console.log(`[Job Analysis URL] Failed after: ${((performance.now() - totalStart) / 1000).toFixed(2)}s`);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to analyze job posting",
@@ -91,7 +99,11 @@ export async function analyzeJobFromText(
   _prevState: ActionState<JobPosting>,
   formData: FormData
 ): Promise<ActionState<JobPosting>> {
+  const totalStart = performance.now();
+
   try {
+    console.log("[Job Analysis Text] Starting...");
+
     const rawData = {
       text: formData.get("text"),
     };
@@ -106,8 +118,12 @@ export async function analyzeJobFromText(
       };
     }
 
+    const analyzeStart = performance.now();
     const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromText(validated.data.text);
+
+    console.log(`[Job Analysis Text] Analysis completed: ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`);
+    console.log(`[Job Analysis Text] Total time: ${((performance.now() - totalStart) / 1000).toFixed(2)}s`);
 
     return {
       success: true,
@@ -115,6 +131,7 @@ export async function analyzeJobFromText(
     };
   } catch (error) {
     console.error("Job analysis error:", error);
+    console.log(`[Job Analysis Text] Failed after: ${((performance.now() - totalStart) / 1000).toFixed(2)}s`);
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to analyze job posting",
@@ -123,8 +140,7 @@ export async function analyzeJobFromText(
 }
 
 /**
- * Unified CV optimization that runs gap analysis internally and uses
- * structured gaps to fully optimize the CV.
+ * CV optimization - rewrites CV to match job requirements.
  */
 export async function optimizeCVUnified(
   _prevState: ActionState<EnrichedCV>,
@@ -147,18 +163,9 @@ export async function optimizeCVUnified(
       };
     }
 
-    // Step 1: Run gap analysis internally
-    const gapAnalyzer = new GapAnalysisService({ verbose: true, apiKey: apiKey || undefined });
-    const gapResult = await gapAnalyzer.analyze(validated.data.cv, validated.data.job);
-
-    // Step 2: Get actionable gaps (critical + recommended)
-    const structuredGaps = gapAnalyzer.getActionableGaps(gapResult);
-
-    // Step 3: Run full optimization with structured gaps
     const optimizer = new CvOptimizerService();
-    const enrichedCV = await optimizer.enrich(validated.data.cv, validated.data.job, {
+    const enrichedCV = await optimizer.optimize(validated.data.cv, validated.data.job, {
       context: validated.data.context,
-      structuredGaps: structuredGaps,
       apiKey: apiKey || undefined,
     });
 

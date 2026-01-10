@@ -10,6 +10,14 @@ export function modern(data: CV): string {
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        @page {
+            margin: 40px 0 0 0;
+        }
+
+        @page :first {
+            margin-top: 0;
+        }
+
         body {
             font-family: 'Inter', -apple-system, sans-serif;
             font-size: 10pt;
@@ -34,6 +42,7 @@ export function modern(data: CV): string {
             margin-bottom: 20px;
             padding-bottom: 16px;
             border-bottom: 2px solid #2563eb;
+            page-break-inside: avoid;
         }
 
         .name {
@@ -82,6 +91,7 @@ export function modern(data: CV): string {
             margin-bottom: 10px;
             padding-bottom: 4px;
             border-bottom: 1px solid #e5e7eb;
+            page-break-after: avoid;
         }
 
         .summary {
@@ -91,6 +101,7 @@ export function modern(data: CV): string {
 
         .job {
             margin-bottom: 14px;
+            page-break-inside: avoid;
         }
 
         .job:last-child {
@@ -138,6 +149,7 @@ export function modern(data: CV): string {
 
         .project {
             margin-bottom: 12px;
+            page-break-inside: avoid;
         }
 
         .project:last-child {
@@ -173,6 +185,7 @@ export function modern(data: CV): string {
 
         .blog-post {
             margin-bottom: 10px;
+            page-break-inside: avoid;
         }
 
         .blog-post:last-child {
@@ -195,6 +208,7 @@ export function modern(data: CV): string {
             display: flex;
             justify-content: space-between;
             margin: 5px 0;
+            page-break-inside: avoid;
         }
 
         .edu-degree {

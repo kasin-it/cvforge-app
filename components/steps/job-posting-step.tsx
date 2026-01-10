@@ -19,6 +19,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OptimizationProgress } from "@/components/optimization-progress";
 
 type JobPostingStepProps = {
   wizard: CVWizardReturn;
@@ -136,26 +137,8 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
           </Button>
         </div>
 
-        {/* Loading overlay */}
-        {wizard.isOptimizing && (
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-            <Card className="max-w-md mx-4">
-              <CardContent className="pt-8 pb-8 text-center">
-                <div className="relative w-20 h-20 mx-auto mb-6">
-                  <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
-                  <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                  <Wand2 className="absolute inset-0 m-auto h-8 w-8 text-primary animate-pulse" />
-                </div>
-                <h3 className="font-display text-xl font-semibold mb-2">
-                  Optimizing Your CV
-                </h3>
-                <p className="text-muted-foreground">
-                  Analyzing gaps and tailoring your CV to match the job requirements...
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Loading overlay with multi-step progress */}
+        {wizard.isOptimizing && <OptimizationProgress />}
       </StepContainer>
     );
   }

@@ -40,7 +40,9 @@ export class JobPostingRetrieverService {
     }
 
     console.log(`[JobRetriever] Cache miss, fetching: ${url}`);
-    const readerUrl = `${JINA_BASE_URL}/${url}`;
+    // Ensure URL is properly encoded for non-ASCII characters
+    const encodedUrl = encodeURI(url);
+    const readerUrl = `${JINA_BASE_URL}/${encodedUrl}`;
 
     const headers: Record<string, string> = {
       Accept: "text/markdown",

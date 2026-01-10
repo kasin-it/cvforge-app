@@ -13,4 +13,4 @@ export function createOpenAIClient(apiKey?: string) {
   return openai;
 }
 
-export const DEFAULT_MODEL = "gpt-4o";
+export const DEFAULT_MODEL = "gpt-4o-mini-2024-07-18";
