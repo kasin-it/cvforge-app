@@ -1,7 +1,7 @@
 import type { CV } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
 
-function generateId(): string {
+export function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 

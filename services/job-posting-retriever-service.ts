@@ -112,19 +112,6 @@ export class JobPostingRetrieverService {
     }
   }
 
-  /** Clear all cached entries */
-  static clearCache(): void {
-    cache.clear();
-  }
-
-  /** Get cache stats for debugging */
-  static getCacheStats(): { size: number; urls: string[] } {
-    return {
-      size: cache.size,
-      urls: Array.from(cache.keys()),
-    };
-  }
-
   private extractTitle(content: string): string {
     return content.match(/^#\s+(.+)$/m)?.[1] ?? "";
   }

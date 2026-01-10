@@ -88,29 +88,9 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
       const reader = new FileReader();
       reader.onload = (event) => {
         const content = event.target?.result as string;
-        if (wizard.importCVFromJSON(content)) {
-          // Reset form with imported data
-          const imported = JSON.parse(content);
-          form.reset({
-            ...imported,
-            experience: imported.experience.map((exp: any) => ({
-              ...exp,
-              id: wizard.generateId(),
-            })),
-            education: imported.education?.map((edu: any) => ({
-              ...edu,
-              id: wizard.generateId(),
-            })) ?? null,
-            projects: imported.projects?.map((proj: any) => ({
-              ...proj,
-              id: wizard.generateId(),
-            })) ?? null,
-            blogPosts: imported.blogPosts?.map((post: any) => ({
-              ...post,
-              id: wizard.generateId(),
-            })) ?? null,
-          });
-          // Switch to edit tab after successful import
+        const result = wizard.importCVFromJSON(content);
+        if (result.success) {
+          form.reset(result.data);
           setActiveTab("manual");
         }
       };
@@ -214,7 +194,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
           </TabsList>
 
           <TabsContent value="manual" className="space-y-6">
-            {/* Personal Info */}
             <CollapsibleSection title="Personal Info">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -297,7 +276,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            {/* Summary */}
             <CollapsibleSection title="Summary">
               <div className="space-y-2">
                 <Label htmlFor="summary">Professional Summary</Label>
@@ -313,7 +291,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            {/* Experience */}
             <CollapsibleSection
               title="Experience"
               onAdd={addExperience}
@@ -416,7 +393,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               )}
             </CollapsibleSection>
 
-            {/* Skills */}
             <CollapsibleSection title="Skills">
               <div className="space-y-2">
                 <Label>Technical Skills</Label>
@@ -434,7 +410,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            {/* Education */}
             <CollapsibleSection
               title="Education"
               onAdd={addEducation}
@@ -490,7 +465,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               )}
             </CollapsibleSection>
 
-            {/* Projects */}
             <CollapsibleSection
               title="Projects"
               optional
@@ -582,7 +556,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               )}
             </CollapsibleSection>
 
-            {/* Blog Posts */}
             <CollapsibleSection
               title="Blog Posts"
               optional
@@ -631,11 +604,11 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
                           <Label>URL</Label>
                           <Input
                             placeholder="https://blog.example.com/..."
-                            value={post.url}
+                            value={post.url || ""}
                             onChange={(e) => {
                               const current = watch("blogPosts") || [];
                               const updated = [...current];
-                              updated[index] = { ...updated[index], url: e.target.value };
+                              updated[index] = { ...updated[index], url: e.target.value || null };
                               setValue("blogPosts", updated);
                             }}
                           />
@@ -661,7 +634,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               )}
             </CollapsibleSection>
 
-            {/* Languages */}
             <CollapsibleSection title="Languages" optional defaultOpen={false}>
               <div className="space-y-2">
                 <Label>Languages</Label>
@@ -679,7 +651,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            {/* Certifications */}
             <CollapsibleSection title="Certifications" optional defaultOpen={false}>
               <div className="space-y-2">
                 <Label>Certifications</Label>
@@ -697,7 +668,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
               </div>
             </CollapsibleSection>
 
-            {/* Additional Context for Optimization */}
             <CollapsibleSection title="Additional Context" optional defaultOpen={false}>
               <div className="space-y-2">
                 <Label htmlFor="context">Extra Information for Optimization</Label>
@@ -737,7 +707,6 @@ export function CVInputStep({ wizard }: CVInputStepProps) {
           </TabsContent>
         </Tabs>
 
-        {/* Actions */}
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           <div className="flex items-center gap-2">
             <Button type="button" variant="outline" onClick={wizard.exportCVToJSON}>

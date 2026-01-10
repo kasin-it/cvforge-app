@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CVForge
+
+AI-powered CV/resume optimizer that tailors your CV to specific job postings for maximum ATS compatibility.
+
+## Features
+
+- **CV Input** - Enter CV data via form or import from JSON
+- **Job Analysis** - Analyze job postings from URL (via Jina.ai Reader) or pasted text
+- **AI Optimization** - Tailor your CV content to match job requirements
+- **ATS Scoring** - Get keyword match analysis and ATS compatibility score
+- **Export** - Download optimized CV as PDF or HTML
+
+## Tech Stack
+
+- Next.js 16 with React 19
+- TypeScript
+- Tailwind CSS v4
+- Vercel AI SDK with OpenAI
+- Jina.ai Reader for web scraping
+- Zod for schema validation
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- [Bun](https://bun.sh/) runtime
+- OpenAI API key
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Clone the repository
+git clone https://github.com/yourusername/cvforge-app.git
+cd cvforge-app
+
+# Install dependencies
+bun install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+```
+
+### Development
+
+```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+bun run build
+```
 
-## Learn More
+### Lint
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+bun run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+cvforge-app/
+├── app/
+│   ├── actions/        # Server actions for AI operations
+│   └── page.tsx        # Main page
+├── components/
+│   ├── cv-wizard.tsx   # Main wizard component
+│   ├── steps/          # Wizard step components
+│   └── ui/             # Reusable UI components
+├── hooks/
+│   └── use-cv-wizard.ts # Wizard state management
+├── lib/
+│   ├── form-schemas.ts # Form validation schemas
+│   └── form-helpers.ts # Form utilities
+├── services/
+│   ├── job-posting-retriever-service.ts  # Jina.ai web scraping
+│   ├── job-posting-analyzer-service.ts   # AI job analysis
+│   ├── cv-optimizer-service.ts           # AI CV optimization
+│   └── cv-renderer-service.ts            # PDF/HTML generation
+├── templates/          # CV HTML templates
+└── schema.ts           # Zod schemas (single source of truth)
+```
 
-## Deploy on Vercel
+## How It Works
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **CV Input**: User enters their CV data through a structured form or imports JSON
+2. **Job Posting**: App fetches job URL via Jina.ai Reader or accepts pasted text, then uses AI to extract key requirements, skills, and keywords
+3. **Optimization**: AI tailors the CV content to match job requirements while maintaining authenticity
+4. **Preview**: View the optimized CV with ATS score, matched keywords, and export options
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `OPENAI_API_KEY` | OpenAI API key for AI features | Yes |
+| `JINA_AI_API_KEY` | Jina.ai API key for web scraping | No (works without, but rate-limited) |
+
+## License
+
+MIT

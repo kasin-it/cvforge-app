@@ -28,9 +28,7 @@ type JobPostingStepProps = {
 type InputMethod = "url" | "text" | null;
 
 export function JobPostingStep({ wizard }: JobPostingStepProps) {
-  const [inputMethod, setInputMethod] = useState<InputMethod>(
-    wizard.jobPosting ? null : null
-  );
+  const [inputMethod, setInputMethod] = useState<InputMethod>(null);
 
   const handleAnalyze = async () => {
     if (inputMethod === "url" && wizard.jobUrl) {
@@ -56,8 +54,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
       >
         <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
           <CardContent className="pt-6">
-            {/* Success header */}
-            <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-primary" />
               </div>
@@ -67,8 +64,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
             </div>
 
             <div className="space-y-4 pt-4 border-t border-border">
-              {/* Tags - ATS Keywords */}
-              <div>
+                            <div>
                 <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-primary" />
                   Keywords (ATS Tags)
@@ -82,8 +78,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
                 </div>
               </div>
 
-              {/* Skills - Full Requirements */}
-              <div>
+                            <div>
                 <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-destructive" />
                   Required Skills & Experience
@@ -99,8 +94,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="flex gap-3 mt-6 pt-4 border-t border-border">
+                        <div className="flex gap-3 mt-6 pt-4 border-t border-border">
               <Button variant="outline" size="sm" onClick={handleReanalyze}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Re-analyze
@@ -109,15 +103,13 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
           </CardContent>
         </Card>
 
-        {/* Error display */}
-        {wizard.error && (
+                {wizard.error && (
           <div className="mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
             {wizard.error}
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+                <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           <Button variant="outline" onClick={wizard.prevStep}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -137,8 +129,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
           </Button>
         </div>
 
-        {/* Loading overlay with multi-step progress */}
-        {wizard.isOptimizing && <OptimizationProgress />}
+                {wizard.isOptimizing && <OptimizationProgress />}
       </StepContainer>
     );
   }
@@ -149,8 +140,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
       title="Job Posting"
       description="Add the job posting you want to optimize your CV for"
     >
-      {/* Input method selection */}
-      {!inputMethod && (
+            {!inputMethod && (
         <div className="grid gap-4 sm:grid-cols-2 max-w-2xl mx-auto">
           <button
             onClick={() => setInputMethod("url")}
@@ -188,8 +178,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
         </div>
       )}
 
-      {/* URL input */}
-      {inputMethod === "url" && (
+            {inputMethod === "url" && (
         <div className="max-w-2xl mx-auto space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -244,8 +233,7 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
         </div>
       )}
 
-      {/* Text input */}
-      {inputMethod === "text" && (
+            {inputMethod === "text" && (
         <div className="max-w-2xl mx-auto space-y-6">
           <Card>
             <CardContent className="pt-6">
@@ -301,15 +289,13 @@ export function JobPostingStep({ wizard }: JobPostingStepProps) {
         </div>
       )}
 
-      {/* Error display */}
-      {wizard.error && (
+            {wizard.error && (
         <div className="max-w-2xl mx-auto mt-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
           {wizard.error}
         </div>
       )}
 
-      {/* Navigation (only when no input method selected) */}
-      {!inputMethod && (
+            {!inputMethod && (
         <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
           <Button variant="outline" onClick={wizard.prevStep}>
             <ArrowLeft className="h-4 w-4 mr-2" />

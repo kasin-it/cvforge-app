@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-// ============================================
-// CV Schemas
-// ============================================
-
 export const contactSchema = z
   .object({
     email: z.string(),
@@ -28,7 +24,7 @@ export const blogPostSchema = z
   .object({
     name: z.string(),
     description: z.string(),
-    url: z.string(),
+    url: z.string().nullable(),
   })
   .strict();
 
@@ -65,11 +61,6 @@ export const cvSchema = z
   })
   .strict();
 
-// ============================================
-// Job Posting Schema (simplified for optimization focus)
-// ============================================
-
-// Schema for AI extraction (without sourceUrl)
 export const jobPostingExtractSchema = z
   .object({
     title: z.string(),
@@ -78,16 +69,11 @@ export const jobPostingExtractSchema = z
   })
   .strict();
 
-// Full schema including optional sourceUrl
 export const jobPostingSchema = jobPostingExtractSchema
   .extend({
     sourceUrl: z.string().optional(),
   })
   .strict();
-
-// ============================================
-// Enriched CV Schema (after optimization)
-// ============================================
 
 export const enrichmentMetaSchema = z
   .object({
@@ -101,21 +87,12 @@ export const enrichedCvSchema = cvSchema
   })
   .strict();
 
-// ============================================
-// Render Options Schema
-// ============================================
-
 export const renderOptionsSchema = z
   .object({
-    output: z.string().optional(),
     template: z.enum(["modern", "minimal"]).optional(),
     format: z.enum(["pdf", "html"]).optional(),
   })
   .strict();
-
-// ============================================
-// Type Exports
-// ============================================
 
 export type Contact = z.infer<typeof contactSchema>;
 export type Experience = z.infer<typeof experienceSchema>;
@@ -127,4 +104,3 @@ export type JobPosting = z.infer<typeof jobPostingSchema>;
 export type EnrichmentMeta = z.infer<typeof enrichmentMetaSchema>;
 export type EnrichedCV = z.infer<typeof enrichedCvSchema>;
 export type RenderOptions = z.infer<typeof renderOptionsSchema>;
-

@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import type { JobPosting, EnrichedCV, CV } from "@/schema";
+import { cvSchema, type JobPosting, type EnrichedCV } from "@/schema";
 import type { CVFormValues } from "@/lib/form-schemas";
 import type { TemplateType, ExportFormat, WizardStep } from "@/lib/types";
 import { useApiKey } from "@/contexts/api-key-context";
-
-const STORAGE_KEY = "cvforge_cv_data";
 import {
   analyzeJobFromUrl,
   analyzeJobFromText,
   optimizeCVUnified,
 } from "@/app/actions/cv-actions";
-import { stripFormIds, addFormIds } from "@/lib/form-helpers";
+import { stripFormIds, addFormIds, generateId } from "@/lib/form-helpers";
 import { downloadHTML, downloadPDF } from "@/lib/cv-renderer-client";
+
+const STORAGE_KEY = "cvforge_cv_data";
 
 export type WizardState = {
   currentStep: WizardStep;
@@ -22,7 +22,6 @@ export type WizardState = {
   jobText: string;
   jobPosting: JobPosting | null;
   isAnalyzing: boolean;
-  // Optimization state
   context: string;
   template: TemplateType;
   enrichedCV: EnrichedCV | null;
@@ -31,10 +30,6 @@ export type WizardState = {
   format: ExportFormat;
   error: string | null;
 };
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
-}
 
 function createEmptyCVFormData(): CVFormValues {
   return {
@@ -81,8 +76,11 @@ function loadFromLocalStorage(): CVFormValues | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const cv = JSON.parse(saved) as CV;
-      return addFormIds(cv);
+      const parsed = JSON.parse(saved);
+      const validated = cvSchema.safeParse(parsed);
+      if (validated.success) {
+        return addFormIds(validated.data);
+      }
     }
   } catch {
     // Invalid data, ignore
@@ -361,16 +359,26 @@ export function useCVWizard() {
     URL.revokeObjectURL(url);
   }, [state.cvFormData]);
 
-  const importCVFromJSON = useCallback((jsonString: string): boolean => {
-    try {
-      const cv = JSON.parse(jsonString) as CV;
-      const formData = addFormIds(cv);
-      setState((prev) => ({ ...prev, cvFormData: formData }));
-      return true;
-    } catch {
-      return false;
-    }
-  }, []);
+  const importCVFromJSON = useCallback(
+    (jsonString: string): { success: true; data: CVFormValues } | { success: false; error: string } => {
+      try {
+        const parsed = JSON.parse(jsonString);
+        const validated = cvSchema.safeParse(parsed);
+        if (!validated.success) {
+          return {
+            success: false,
+            error: validated.error.issues[0]?.message ?? "Invalid CV format",
+          };
+        }
+        const formData = addFormIds(validated.data);
+        setState((prev) => ({ ...prev, cvFormData: formData }));
+        return { success: true, data: formData };
+      } catch {
+        return { success: false, error: "Invalid JSON format" };
+      }
+    },
+    []
+  );
 
   // Reset
   const reset = useCallback(() => {

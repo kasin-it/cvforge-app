@@ -31,7 +31,6 @@ export function CVWizard() {
 
       <main className="flex-1 py-8">
         <div className="max-w-5xl mx-auto px-6">
-          {/* Step Indicator */}
           <div className="mb-12">
             <StepIndicator
               currentStep={wizard.currentStep}
@@ -43,14 +42,12 @@ export function CVWizard() {
             />
           </div>
 
-          {/* Step Content */}
           <div key={wizard.currentStep}>
             {renderStep()}
           </div>
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border/50 py-6 mt-auto">
         <div className="max-w-5xl mx-auto px-6 text-center text-sm text-muted-foreground">
           Built with care to help you land your dream job

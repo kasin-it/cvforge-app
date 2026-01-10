@@ -7,25 +7,15 @@ import {
   type EnrichedCV,
   type JobPosting,
 } from "@/schema";
-import {
-  JobPostingAnalyzerService,
-  CvOptimizerService,
-  CVRendererService,
-} from "@/services";
-
-// ============================================
-// Action State Types
-// ============================================
+import { JobPostingAnalyzerService } from "@/services/job-posting-analyzer-service";
+import { CvOptimizerService } from "@/services/cv-optimizer-service";
+import { CVRendererService } from "@/services/cv-renderer-service";
 
 export type ActionState<T> = {
   success: boolean;
   data?: T;
   error?: string;
 };
-
-// ============================================
-// Input Validation Schemas
-// ============================================
 
 const analyzeJobUrlSchema = z.object({
   url: z.string().url("Please enter a valid URL"),
@@ -46,10 +36,6 @@ const renderCvSchema = z.object({
   template: z.enum(["modern", "minimal"]).default("modern"),
   format: z.enum(["pdf", "html"]).default("pdf"),
 });
-
-// ============================================
-// Server Actions
-// ============================================
 
 export async function analyzeJobFromUrl(
   _prevState: ActionState<JobPosting>,
@@ -75,7 +61,7 @@ export async function analyzeJobFromUrl(
     }
 
     const analyzeStart = performance.now();
-    const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
+    const analyzer = new JobPostingAnalyzerService({ apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromUrl(validated.data.url);
 
     console.log(`[Job Analysis URL] Analysis completed: ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`);
@@ -119,7 +105,7 @@ export async function analyzeJobFromText(
     }
 
     const analyzeStart = performance.now();
-    const analyzer = new JobPostingAnalyzerService({ verbose: true, apiKey: apiKey || undefined });
+    const analyzer = new JobPostingAnalyzerService({ apiKey: apiKey || undefined });
     const jobPosting = await analyzer.analyzeFromText(validated.data.text);
 
     console.log(`[Job Analysis Text] Analysis completed: ${((performance.now() - analyzeStart) / 1000).toFixed(2)}s`);
@@ -147,9 +133,16 @@ export async function optimizeCVUnified(
   formData: FormData
 ): Promise<ActionState<EnrichedCV>> {
   try {
+    const cvString = formData.get("cv");
+    const jobString = formData.get("job");
+
+    if (typeof cvString !== "string" || typeof jobString !== "string") {
+      return { success: false, error: "Missing required data" };
+    }
+
     const rawData = {
-      cv: JSON.parse(formData.get("cv") as string),
-      job: JSON.parse(formData.get("job") as string),
+      cv: JSON.parse(cvString),
+      job: JSON.parse(jobString),
       context: formData.get("context") ?? undefined,
     };
     const apiKey = formData.get("apiKey") as string | null;
@@ -188,10 +181,18 @@ export async function renderCV(formData: FormData): Promise<{
   error?: string;
 }> {
   try {
+    const cvString = formData.get("cv");
+    const template = formData.get("template");
+    const format = formData.get("format");
+
+    if (typeof cvString !== "string") {
+      return { success: false, error: "Missing CV data" };
+    }
+
     const rawData = {
-      cv: JSON.parse(formData.get("cv") as string),
-      template: formData.get("template") as "modern" | "minimal",
-      format: formData.get("format") as "pdf" | "html",
+      cv: JSON.parse(cvString),
+      template,
+      format,
     };
 
     const validated = renderCvSchema.safeParse(rawData);
@@ -204,10 +205,11 @@ export async function renderCV(formData: FormData): Promise<{
     }
 
     const renderer = new CVRendererService();
-    const { cv, template, format } = validated.data;
+    const { cv, template: validatedTemplate, format: validatedFormat } = validated.data;
 
-    if (format === "html") {
-      const html = await renderer.renderHTML(cv, template);
+    if (validatedFormat === "html") {
+      const html = await renderer.renderHTML(cv, validatedTemplate);
+      await renderer.close();
       return {
         success: true,
         data: {
@@ -218,8 +220,7 @@ export async function renderCV(formData: FormData): Promise<{
       };
     }
 
-    // PDF format
-    const pdf = await renderer.renderPDF(cv, { template });
+    const pdf = await renderer.renderPDF(cv, { template: validatedTemplate });
     await renderer.close();
 
     return {
@@ -239,11 +240,6 @@ export async function renderCV(formData: FormData): Promise<{
   }
 }
 
-
-// ============================================
-// Preview HTML Generation
-// ============================================
-
 const previewHtmlSchema = z.object({
   cv: cvSchema,
   template: z.enum(["modern", "minimal"]).default("modern"),
@@ -255,9 +251,15 @@ export async function generatePreviewHTML(formData: FormData): Promise<{
   error?: string;
 }> {
   try {
+    const cvString = formData.get("cv");
+
+    if (typeof cvString !== "string") {
+      return { success: false, error: "Missing CV data" };
+    }
+
     const rawData = {
-      cv: JSON.parse(formData.get("cv") as string),
-      template: formData.get("template") as "modern" | "minimal",
+      cv: JSON.parse(cvString),
+      template: formData.get("template"),
     };
 
     const validated = previewHtmlSchema.safeParse(rawData);

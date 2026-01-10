@@ -92,12 +92,9 @@ export function OptimizationProgress() {
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="max-w-lg w-full shadow-2xl border-primary/20">
         <CardContent className="pt-8 pb-8">
-          {/* Main icon with animation */}
-          <div className="relative w-24 h-24 mx-auto mb-8">
-            {/* Outer ring */}
-            <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
-            {/* Animated progress ring */}
-            <svg className="absolute inset-0 w-full h-full -rotate-90">
+                    <div className="relative w-24 h-24 mx-auto mb-8">
+                        <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                        <svg className="absolute inset-0 w-full h-full -rotate-90">
               <circle
                 cx="48"
                 cy="48"
@@ -110,14 +107,12 @@ export function OptimizationProgress() {
                 strokeLinecap="round"
               />
             </svg>
-            {/* Center icon */}
-            <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center">
               <CurrentIcon className="h-10 w-10 text-primary animate-pulse" />
             </div>
           </div>
 
-          {/* Current step info */}
-          <div className="text-center mb-8">
+                    <div className="text-center mb-8">
             <h3 className="font-display text-xl font-semibold mb-2">
               {currentStep.title}
             </h3>
@@ -126,13 +121,11 @@ export function OptimizationProgress() {
             </p>
           </div>
 
-          {/* Step progress bar */}
-          <div className="mb-8">
+                    <div className="mb-8">
             <Progress value={stepProgress} className="h-2" />
           </div>
 
-          {/* Steps list */}
-          <div className="space-y-3">
+                    <div className="space-y-3">
             {OPTIMIZATION_STEPS.map((step, index) => {
               const StepIcon = step.icon;
               const isCompleted = index < currentStepIndex;
@@ -186,8 +179,7 @@ export function OptimizationProgress() {
             })}
           </div>
 
-          {/* Footer tip */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
+                    <p className="text-center text-xs text-muted-foreground mt-6">
             This usually takes 20-40 seconds
           </p>
         </CardContent>

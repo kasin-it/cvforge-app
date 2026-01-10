@@ -50,7 +50,7 @@ export const blogPostFormSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Title is required"),
   description: z.string().min(1, "Description is required"),
-  url: z.string().url("Please enter a valid URL"),
+  url: optionalUrl,
 });
 
 // Full CV form schema
@@ -80,7 +80,6 @@ export const jobTextFormSchema = z.object({
 
 // Optimization settings form schema
 export const optimizationFormSchema = z.object({
-  mode: z.enum(["rephrase", "enhance", "tailor"]),
   context: z.string().optional(),
   template: z.enum(["modern", "minimal"]),
 });

@@ -26,8 +26,7 @@ export function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) 
 
           return (
             <div key={step.number} className="flex items-center flex-1 last:flex-none">
-              {/* Step circle */}
-              <button
+                            <button
                 onClick={() => onStepClick?.(step.number)}
                 disabled={step.number > currentStep}
                 className={cn(
@@ -43,14 +42,12 @@ export function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) 
                   isActive && "scale-110"
                 )} />
 
-                {/* Pulse animation for active step */}
-                {isActive && (
+                                {isActive && (
                   <span className="absolute inset-0 rounded-full animate-ping bg-primary/20" />
                 )}
               </button>
 
-              {/* Connector line */}
-              {index < steps.length - 1 && (
+                            {index < steps.length - 1 && (
                 <div className="flex-1 h-0.5 mx-3 bg-border relative overflow-hidden">
                   <div
                     className={cn(
@@ -65,8 +62,7 @@ export function StepIndicator({ currentStep, onStepClick }: StepIndicatorProps) 
         })}
       </div>
 
-      {/* Step labels */}
-      <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center justify-between mt-3">
         {steps.map((step, index) => {
           const isActive = step.number === currentStep;
           const isCompleted = step.number < currentStep;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { CVWizardReturn, TemplateType, ExportFormat } from "@/hooks/use-cv-wizard";
+import { CVWizardReturn } from "@/hooks/use-cv-wizard";
 import { EnrichedCV } from "@/schema";
 import { StepContainer } from "@/components/layout/step-container";
 import { Button } from "@/components/ui/button";
@@ -27,14 +27,11 @@ import {
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { generateId } from "@/lib/form-helpers";
 
 type PreviewStepProps = {
   wizard: CVWizardReturn;
 };
-
-function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
-}
 
 export function PreviewStep({ wizard }: PreviewStepProps) {
   const { enrichedCV } = wizard;
@@ -74,8 +71,7 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
       title="Your Optimized CV"
       description="Review the optimization results and export your CV"
     >
-      {/* Warning Banner */}
-      <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border border-orange-200/60 dark:border-orange-800/40">
+            <div className="mb-6 p-4 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/20 border border-orange-200/60 dark:border-orange-800/40">
         <div className="flex gap-3">
           <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
             <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -93,11 +89,9 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-5">
-        {/* CV Preview */}
-        <div className="lg:col-span-3">
+                <div className="lg:col-span-3">
           <div className="border border-border rounded-xl overflow-hidden bg-white shadow-lg">
-            {/* Preview header */}
-            <div className="bg-muted/50 px-4 py-3 border-b border-border flex items-center justify-between">
+                        <div className="bg-muted/50 px-4 py-3 border-b border-border flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground">
                 CV Preview
               </span>
@@ -137,8 +131,7 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
               </div>
             </div>
 
-            {/* CV Content Preview - rendered client-side using actual templates */}
-            <CVPreview
+                        <CVPreview
               cv={enrichedCV}
               template={wizard.template}
               className="w-full min-h-[600px] h-[800px]"
@@ -146,10 +139,8 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
           </div>
         </div>
 
-        {/* Export Options */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Template Selection */}
-          <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="border border-border rounded-xl p-5 bg-card">
             <h3 className="font-display font-semibold mb-4">Template</h3>
             <div className="flex gap-2">
               <button
@@ -177,8 +168,7 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
             </div>
           </div>
 
-          {/* Export Options */}
-          <div className="border border-primary/20 rounded-xl p-5 bg-primary/5">
+                    <div className="border border-primary/20 rounded-xl p-5 bg-primary/5">
             <h3 className="font-display font-semibold mb-4">Export</h3>
             <div className="flex gap-2 mb-4">
               <button
@@ -228,8 +218,7 @@ export function PreviewStep({ wizard }: PreviewStepProps) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
         <Button variant="outline" onClick={() => wizard.goToStep(2)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Job Posting
@@ -253,7 +242,7 @@ type EditModeProps = {
 type ExperienceWithId = EnrichedCV["experience"][0] & { id: string };
 type EducationWithId = { id: string; degree: string; school: string; year: string };
 type ProjectWithId = { id: string; name: string; description: string; url: string | null; technologies: string[] };
-type BlogPostWithId = { id: string; name: string; description: string; url: string };
+type BlogPostWithId = { id: string; name: string; description: string; url: string | null };
 
 type EditFormValues = Omit<EnrichedCV, "_meta" | "experience" | "education" | "projects" | "blogPosts"> & {
   experience: ExperienceWithId[];
@@ -380,8 +369,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
       description="Make any corrections or adjustments to your optimized CV"
     >
       <form onSubmit={handleSubmit(handleSave)} className="space-y-6">
-        {/* Personal Info */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Personal Info</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
@@ -419,8 +407,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
-        {/* Summary */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Summary</h3>
           <Textarea
             {...register("summary")}
@@ -429,8 +416,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           />
         </div>
 
-        {/* Experience */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-semibold">Experience</h3>
             <Button type="button" variant="outline" size="sm" onClick={addExperience}>
@@ -507,8 +493,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
-        {/* Skills */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Skills</h3>
           <Controller
             control={control}
@@ -523,8 +508,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           />
         </div>
 
-        {/* Education */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-semibold">Education</h3>
             <Button type="button" variant="outline" size="sm" onClick={addEducation}>
@@ -589,8 +573,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
-        {/* Projects */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-semibold">Projects</h3>
             <Button type="button" variant="outline" size="sm" onClick={addProject}>
@@ -668,8 +651,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
-        {/* Blog Posts */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-display font-semibold">Blog Posts</h3>
             <Button type="button" variant="outline" size="sm" onClick={addBlogPost}>
@@ -705,11 +687,11 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
                   />
                   <Input
                     placeholder="URL"
-                    value={post.url}
+                    value={post.url || ""}
                     onChange={(e) => {
                       const current = watch("blogPosts") || [];
                       const updated = [...current];
-                      updated[index] = { ...updated[index], url: e.target.value };
+                      updated[index] = { ...updated[index], url: e.target.value || null };
                       setValue("blogPosts", updated);
                     }}
                   />
@@ -735,8 +717,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           </div>
         </div>
 
-        {/* Languages */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Languages</h3>
           <Controller
             control={control}
@@ -751,8 +732,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           />
         </div>
 
-        {/* Certifications */}
-        <div className="border border-border rounded-xl p-5 bg-card">
+                <div className="border border-border rounded-xl p-5 bg-card">
           <h3 className="font-display font-semibold mb-4">Certifications</h3>
           <Controller
             control={control}
@@ -767,8 +747,7 @@ function EditMode({ cv, onSave, onCancel }: EditModeProps) {
           />
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-border">
+                <div className="flex items-center justify-between pt-6 border-t border-border">
           <Button type="button" variant="outline" onClick={onCancel}>
             <X className="h-4 w-4 mr-2" />
             Cancel

@@ -1,5 +1,4 @@
 import puppeteer, { type Browser } from "puppeteer";
-import { writeFile } from "fs/promises";
 import type { CV, RenderOptions } from "../schema";
 import { modern } from "../templates/modern";
 import { minimal } from "../templates/minimal";
@@ -40,24 +39,6 @@ export class CVRendererService {
     await page.close();
 
     return Buffer.from(pdf);
-  }
-
-  async saveToFile(cv: CV, options: RenderOptions = {}): Promise<string> {
-    const { output = "cv", format = "pdf", template = "modern" } = options;
-
-    const filename = output.endsWith(`.${format}`)
-      ? output
-      : `${output}.${format}`;
-
-    if (format === "html") {
-      const html = await this.renderHTML(cv, template);
-      await writeFile(filename, html);
-    } else {
-      const pdf = await this.renderPDF(cv, { template });
-      await writeFile(filename, pdf);
-    }
-
-    return filename;
   }
 
   async close(): Promise<void> {
