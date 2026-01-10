@@ -1,30 +1,80 @@
+<div align="center">
+
 # CVForge
 
-AI-powered CV/resume optimizer that tailors your CV to specific job postings for maximum ATS compatibility.
+### Transform Your Resume. Land Your Dream Job.
+
+**AI-powered CV optimizer that tailors your resume to any job posting for maximum ATS compatibility**
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+[Features](#features) | [Quick Start](#quick-start) | [How It Works](#how-it-works) | [Tech Stack](#tech-stack)
+
+---
+
+</div>
+
+## The Problem
+
+> **75% of resumes are rejected by ATS before a human ever sees them.**
+
+Applicant Tracking Systems (ATS) filter candidates based on keyword matches, formatting, and relevance scores. Even highly qualified candidates get filtered out when their resumes don't align with job-specific requirements.
+
+## The Solution
+
+CVForge uses AI to analyze job postings and intelligently optimize your CV to:
+- Match the exact keywords and phrases recruiters are looking for
+- Maintain your authentic experience while improving relevance
+- Provide real-time ATS compatibility scoring
+- Export in ATS-friendly formats (PDF/HTML)
+
+---
 
 ## Features
 
-- **CV Input** - Enter CV data via form or import from JSON
-- **Job Analysis** - Analyze job postings from URL (via Jina.ai Reader) or pasted text
-- **AI Optimization** - Tailor your CV content to match job requirements
-- **ATS Scoring** - Get keyword match analysis and ATS compatibility score
-- **Export** - Download optimized CV as PDF or HTML
+<table>
+<tr>
+<td width="50%">
 
-## Tech Stack
+### CV Input
+Import your CV data via structured form or paste JSON directly. Supports all standard resume sections including experience, education, skills, and more.
 
-- Next.js 16 with React 19
-- TypeScript
-- Tailwind CSS v4
-- Vercel AI SDK with OpenAI
-- Jina.ai Reader for web scraping
-- Zod for schema validation
+</td>
+<td width="50%">
 
-## Getting Started
+### Job Analysis
+Paste any job URL or job description text. AI extracts key requirements, must-have skills, and hidden keywords that ATS systems look for.
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### Smart Optimization
+AI tailors your CV content to match job requirements while keeping your experience authentic. Choose from multiple optimization modes.
+
+</td>
+<td width="50%">
+
+### ATS Scoring
+Get instant feedback with keyword match analysis, compatibility scores, and specific recommendations to improve your chances.
+
+</td>
+</tr>
+</table>
+
+---
+
+## Quick Start
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) runtime
-- OpenAI API key
+- [Bun](https://bun.sh/) v1.0+ (or Node.js 18+)
+- [OpenAI API Key](https://platform.openai.com/api-keys)
 
 ### Installation
 
@@ -36,70 +86,148 @@ cd cvforge-app
 # Install dependencies
 bun install
 
-# Set up environment variables
+# Configure environment
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
 ```
 
-### Development
+Add your API key to `.env`:
+
+```env
+OPENAI_API_KEY=sk-your-key-here
+JINA_AI_API_KEY=jina_your-key-here  # Optional: for faster job URL scraping
+```
+
+### Run
 
 ```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open **[http://localhost:3000](http://localhost:3000)** and start optimizing.
 
-### Build
+---
 
-```bash
-bun run build
+## How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CVForge Workflow                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐
+    │   Step   │      │   Step   │      │   Step   │      │   Step   │
+    │    1     │ ──▶  │    2     │ ──▶  │    3     │ ──▶  │    4     │
+    │          │      │          │      │          │      │          │
+    │ CV Input │      │   Job    │      │ Optimize │      │  Export  │
+    │          │      │ Analysis │      │          │      │          │
+    └──────────┘      └──────────┘      └──────────┘      └──────────┘
+         │                 │                 │                 │
+         ▼                 ▼                 ▼                 ▼
+    ┌──────────┐      ┌──────────┐      ┌──────────┐      ┌──────────┐
+    │Form/JSON │      │URL/Text  │      │AI Engine │      │PDF/HTML  │
+    │  Import  │      │ Scraping │      │Tailoring │      │ Download │
+    └──────────┘      └──────────┘      └──────────┘      └──────────┘
 ```
 
-### Lint
+| Step | Description |
+|------|-------------|
+| **1. CV Input** | Enter your CV data through a structured form or import existing JSON data |
+| **2. Job Analysis** | Fetch job posting via URL (using Jina.ai Reader) or paste text directly. AI extracts key requirements, skills, and keywords |
+| **3. Optimization** | AI tailors your CV content to match job requirements while maintaining authenticity |
+| **4. Export** | Preview your optimized CV with ATS score, matched keywords, and download as PDF or HTML |
 
-```bash
-bun run lint
-```
+---
+
+## Tech Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Framework** | Next.js 16 | Full-stack React framework with App Router |
+| **UI** | React 19 + Tailwind CSS v4 | Modern component library with utility-first styling |
+| **Language** | TypeScript 5 | Type-safe development |
+| **AI** | Vercel AI SDK + OpenAI | LLM integration for analysis & optimization |
+| **Scraping** | Jina.ai Reader | Job posting URL extraction |
+| **Validation** | Zod | Runtime type validation and schema definitions |
+| **Forms** | React Hook Form | Performant form handling |
+
+---
 
 ## Project Structure
 
 ```
 cvforge-app/
 ├── app/
-│   ├── actions/        # Server actions for AI operations
-│   └── page.tsx        # Main page
+│   ├── actions/              # Server actions for AI operations
+│   │   └── cv-actions.ts     # Main action handlers
+│   └── page.tsx              # Application entry point
+│
 ├── components/
-│   ├── cv-wizard.tsx   # Main wizard component
-│   ├── steps/          # Wizard step components
-│   └── ui/             # Reusable UI components
+│   ├── cv-wizard.tsx         # Main wizard orchestrator
+│   ├── steps/                # Individual wizard step components
+│   │   ├── cv-input-step.tsx
+│   │   ├── job-posting-step.tsx
+│   │   ├── optimization-step.tsx
+│   │   └── preview-step.tsx
+│   └── ui/                   # Reusable UI primitives
+│
 ├── hooks/
-│   └── use-cv-wizard.ts # Wizard state management
-├── lib/
-│   ├── form-schemas.ts # Form validation schemas
-│   └── form-helpers.ts # Form utilities
+│   └── use-cv-wizard.ts      # Wizard state management
+│
 ├── services/
-│   ├── job-posting-retriever-service.ts  # Jina.ai web scraping
-│   ├── job-posting-analyzer-service.ts   # AI job analysis
-│   ├── cv-optimizer-service.ts           # AI CV optimization
-│   └── cv-renderer-service.ts            # PDF/HTML generation
-├── templates/          # CV HTML templates
-└── schema.ts           # Zod schemas (single source of truth)
+│   ├── job-posting-retriever-service.ts   # Web scraping
+│   ├── job-posting-analyzer-service.ts    # AI job parsing
+│   ├── cv-optimizer-service.ts            # AI CV enhancement
+│   └── cv-renderer-service.ts             # PDF/HTML generation
+│
+├── templates/                # CV HTML templates (modern, minimal)
+├── lib/                      # Utilities and form helpers
+└── schema.ts                 # Zod schemas (single source of truth)
 ```
 
-## How It Works
-
-1. **CV Input**: User enters their CV data through a structured form or imports JSON
-2. **Job Posting**: App fetches job URL via Jina.ai Reader or accepts pasted text, then uses AI to extract key requirements, skills, and keywords
-3. **Optimization**: AI tailors the CV content to match job requirements while maintaining authenticity
-4. **Preview**: View the optimized CV with ATS score, matched keywords, and export options
+---
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `OPENAI_API_KEY` | OpenAI API key for AI features | Yes |
-| `JINA_AI_API_KEY` | Jina.ai API key for web scraping | No (works without, but rate-limited) |
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `OPENAI_API_KEY` | Yes | OpenAI API key for AI-powered features |
+| `JINA_AI_API_KEY` | No | Jina.ai key for faster URL scraping (works without, but rate-limited) |
+
+---
+
+## Commands
+
+```bash
+bun dev          # Start development server at localhost:3000
+bun run build    # Create production build
+bun run start    # Start production server
+bun run lint     # Run ESLint checks
+```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with AI, designed for humans.**
+
+[Report Bug](https://github.com/yourusername/cvforge-app/issues) | [Request Feature](https://github.com/yourusername/cvforge-app/issues)
+
+</div>
