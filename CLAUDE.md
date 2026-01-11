@@ -53,7 +53,7 @@ The app is a **4-step wizard** controlled by a central hook:
 | 1 | `steps/cv-input-step.tsx` | User enters CV via form or JSON import |
 | 2 | `steps/job-posting-step.tsx` | Analyze job from URL (Jina.ai) or pasted text |
 | 3 | `steps/optimization-step.tsx` | Select mode and run AI optimization |
-| 4 | `steps/preview-step.tsx` | View enriched CV with ATS score, download PDF/HTML |
+| 4 | `steps/preview-step.tsx` | View enriched CV, download PDF/HTML |
 
 Wizard state is managed by: `hooks/use-cv-wizard.ts`
 
@@ -66,7 +66,7 @@ Wizard state is managed by: `hooks/use-cv-wizard.ts`
 **`schema.ts`** - Single source of truth for all data types:
 - `CVSchema` / `CV` - Base CV structure
 - `JobPostingSchema` / `JobPosting` - Parsed job data
-- `EnrichedCVSchema` / `EnrichedCV` - Optimized CV with `_meta` analysis
+- `EnrichedCVSchema` / `EnrichedCV` - Optimized CV with `_meta` flag
 
 ### Services (`services/`)
 
@@ -106,14 +106,12 @@ const cleanData = stripFormIds(formData)  // lib/form-helpers.ts
 
 ### Enriched CV Structure
 
-After optimization, the result includes metadata:
+After optimization, the result includes a metadata flag:
 
 ```typescript
 interface EnrichedCV extends CV {
   _meta: {
-    matchedKeywords: string[]
-    atsScore: number
-    suggestions: string[]
+    optimizationApplied: boolean
   }
 }
 ```

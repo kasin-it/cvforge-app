@@ -29,7 +29,6 @@ Applicant Tracking Systems (ATS) filter candidates based on keyword matches, for
 CVForge uses AI to analyze job postings and intelligently optimize your CV to:
 - Match the exact keywords and phrases recruiters are looking for
 - Maintain your authentic experience while improving relevance
-- Provide real-time ATS compatibility scoring
 - Export in ATS-friendly formats (PDF/HTML)
 
 ---
@@ -55,13 +54,13 @@ Paste any job URL or job description text. AI extracts key requirements, must-ha
 <td width="50%">
 
 ### Smart Optimization
-AI tailors your CV content to match job requirements while keeping your experience authentic. Choose from multiple optimization modes.
+AI tailors your CV content to match job requirements while keeping your experience authentic.
 
 </td>
 <td width="50%">
 
-### ATS Scoring
-Get instant feedback with keyword match analysis, compatibility scores, and specific recommendations to improve your chances.
+### Export Options
+Download your optimized CV as PDF or HTML, ready to submit to any application system.
 
 </td>
 </tr>
@@ -134,7 +133,7 @@ Open **[http://localhost:3000](http://localhost:3000)** and start optimizing.
 | **1. CV Input** | Enter your CV data through a structured form or import existing JSON data |
 | **2. Job Analysis** | Fetch job posting via URL (using Jina.ai Reader) or paste text directly. AI extracts key requirements, skills, and keywords |
 | **3. Optimization** | AI tailors your CV content to match job requirements while maintaining authenticity |
-| **4. Export** | Preview your optimized CV with ATS score, matched keywords, and download as PDF or HTML |
+| **4. Export** | Preview your optimized CV and download as PDF or HTML |
 
 ---
 
