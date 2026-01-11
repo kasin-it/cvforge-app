@@ -1,5 +1,5 @@
-import { CVWizard } from "@/components/cv-wizard";
+import { LandingPage } from "@/components/landing/landing-page";
 
 export default function Home() {
-  return <CVWizard />;
+  return <LandingPage />;
 }
