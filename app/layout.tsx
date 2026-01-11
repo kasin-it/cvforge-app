@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans } from "next/font/google";
 import { ApiKeyProvider } from "@/contexts/api-key-context";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -33,6 +34,7 @@ export default function RootLayout({
         className={`${playfair.variable} ${dmSans.variable} font-sans antialiased`}
       >
         <ApiKeyProvider hasEnvKey={hasEnvKey}>{children}</ApiKeyProvider>
+        <Analytics />
       </body>
     </html>
   );
