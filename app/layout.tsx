@@ -3,6 +3,7 @@ import { Playfair_Display, DM_Sans } from "next/font/google";
 import { ApiKeyProvider } from "@/contexts/api-key-context";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { env } from "@/env";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -26,7 +27,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const hasEnvKey = !!process.env.OPENAI_API_KEY;
+  const hasEnvKey = !!env.OPENAI_API_KEY;
 
   return (
     <html lang="en">

@@ -1,3 +1,4 @@
+import { env } from "@/env";
 export interface RetrievedContent {
   url: string;
   title: string;
@@ -27,7 +28,7 @@ export class JobPostingRetrieverService {
   private readonly cacheTtl: number;
 
   constructor(config: JobRetrieverConfig = {}) {
-    this.apiKey = config.apiKey ?? process.env.JINA_AI_API_KEY;
+    this.apiKey = config.apiKey ?? env.JINAAI_API_KEY;
     this.cacheTtl = config.cacheTtl ?? DEFAULT_CACHE_TTL;
   }
 
