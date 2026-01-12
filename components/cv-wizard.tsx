@@ -1,7 +1,6 @@
 "use client";
 
 import { useCVWizard } from "@/hooks/use-cv-wizard";
-import { Header } from "@/components/layout/header";
 import { DisclaimerBanner } from "@/components/layout/disclaimer-banner";
 import { StepIndicator } from "@/components/layout/step-indicator";
 import { CVInputStep } from "@/components/steps/cv-input-step";
@@ -20,8 +19,7 @@ export function CVWizard() {
   const renderStep = () => stepComponents[wizard.currentStep] ?? null;
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <>
       <DisclaimerBanner />
 
       <main className="flex-1 py-8">
@@ -46,6 +44,6 @@ export function CVWizard() {
           Built with care to help you land your dream job
         </div>
       </footer>
-    </div>
+    </>
   );
 }

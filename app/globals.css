@@ -338,3 +338,57 @@
   pointer-events: none;
   mix-blend-mode: overlay;
 }
+
+/* Ember particle animation for auth decorative panel */
+@keyframes float-ember {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% { opacity: 0.8; }
+  90% { opacity: 0.8; }
+  100% {
+    transform: translateY(-100vh) translateX(20px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.ember {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: radial-gradient(circle, oklch(0.7 0.2 55) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: float-ember 8s ease-in-out infinite;
+}
+
+/* Ornamental corner accents for auth cards */
+.ornament-corners {
+  position: relative;
+}
+
+.ornament-corners::before,
+.ornament-corners::after {
+  content: '';
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid oklch(0.55 0.15 55 / 0.3);
+  pointer-events: none;
+}
+
+.ornament-corners::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+  border-radius: 8px 0 0 0;
+}
+
+.ornament-corners::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+  border-radius: 0 0 8px 0;
+}

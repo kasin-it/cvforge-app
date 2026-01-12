@@ -5,7 +5,7 @@ export const env = createEnv({
   server: {
     JINAAI_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
-    SUPABASE_SECRET_KEY: z.string(),
+    SUPABASE_SECRET_KEY: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_SUPABASE_URL: z.string(),
