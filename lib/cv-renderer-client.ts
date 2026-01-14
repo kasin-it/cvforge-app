@@ -1,5 +1,5 @@
 import type { CV } from "@/schema";
-import { renderCV } from "@/app/actions/cv-actions";
+import { renderCV, generatePreviewHTML } from "@/app/actions/cv-actions";
 
 export type TemplateName = "modern" | "minimal";
 
@@ -10,7 +10,6 @@ export async function renderPDF(
   const formData = new FormData();
   formData.set("cv", JSON.stringify(cv));
   formData.set("template", template);
-  formData.set("format", "pdf");
 
   const result = await renderCV(formData);
 
@@ -34,16 +33,14 @@ export async function renderHTML(
   const formData = new FormData();
   formData.set("cv", JSON.stringify(cv));
   formData.set("template", template);
-  formData.set("format", "html");
 
-  const result = await renderCV(formData);
+  const result = await generatePreviewHTML(formData);
 
   if (!result.success || !result.data) {
     throw new Error(result.error || "Failed to render HTML");
   }
 
-  // Convert base64 back to string
-  return atob(result.data.blob);
+  return result.data;
 }
 
 export async function downloadHTML(

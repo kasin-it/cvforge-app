@@ -6,17 +6,22 @@ export function modern(data: CV): string {
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>${escapeHtml(data.name)} - CV</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         @page {
-            margin: 40px 0 0 0;
+            size: A4;
+            margin: 10mm;
         }
 
-        @page :first {
-            margin-top: 0;
+        @media print {
+            html, body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
         body {

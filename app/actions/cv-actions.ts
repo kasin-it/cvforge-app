@@ -11,6 +11,11 @@ import { JobPostingAnalyzerService } from "@/services/job-posting-analyzer-servi
 import { CvOptimizerService } from "@/services/cv-optimizer-service";
 import { CVRendererService } from "@/services/cv-renderer-service";
 
+// Max payload sizes (in bytes)
+const MAX_CV_SIZE = 50 * 1024; // 50KB
+const MAX_JOB_TEXT_SIZE = 100 * 1024; // 100KB
+const MAX_URL_SIZE = 2048; // 2KB
+
 export type ActionState<T> = {
   success: boolean;
   data?: T;
@@ -34,7 +39,6 @@ const optimizeCvUnifiedSchema = z.object({
 const renderCvSchema = z.object({
   cv: cvSchema,
   template: z.enum(["modern", "minimal"]).default("modern"),
-  format: z.enum(["pdf", "html"]).default("pdf"),
 });
 
 export async function analyzeJobFromUrl(
@@ -46,9 +50,12 @@ export async function analyzeJobFromUrl(
   try {
     console.log("[Job Analysis URL] Starting...");
 
-    const rawData = {
-      url: formData.get("url"),
-    };
+    const url = formData.get("url");
+    if (typeof url === "string" && url.length > MAX_URL_SIZE) {
+      return { success: false, error: "URL too long" };
+    }
+
+    const rawData = { url };
     const apiKey = formData.get("apiKey") as string | null;
 
     const validated = analyzeJobUrlSchema.safeParse(rawData);
@@ -90,9 +97,12 @@ export async function analyzeJobFromText(
   try {
     console.log("[Job Analysis Text] Starting...");
 
-    const rawData = {
-      text: formData.get("text"),
-    };
+    const text = formData.get("text");
+    if (typeof text === "string" && text.length > MAX_JOB_TEXT_SIZE) {
+      return { success: false, error: "Job description too long (max 100KB)" };
+    }
+
+    const rawData = { text };
     const apiKey = formData.get("apiKey") as string | null;
 
     const validated = analyzeJobTextSchema.safeParse(rawData);
@@ -140,6 +150,14 @@ export async function optimizeCVUnified(
       return { success: false, error: "Missing required data" };
     }
 
+    if (cvString.length > MAX_CV_SIZE) {
+      return { success: false, error: "CV data too large (max 50KB)" };
+    }
+
+    if (jobString.length > MAX_JOB_TEXT_SIZE) {
+      return { success: false, error: "Job data too large (max 100KB)" };
+    }
+
     const rawData = {
       cv: JSON.parse(cvString),
       job: JSON.parse(jobString),
@@ -182,10 +200,13 @@ export async function renderCV(formData: FormData): Promise<{
 }> {
   const cvString = formData.get("cv");
   const template = formData.get("template");
-  const format = formData.get("format");
 
   if (typeof cvString !== "string") {
     return { success: false, error: "Missing CV data" };
+  }
+
+  if (cvString.length > MAX_CV_SIZE) {
+    return { success: false, error: "CV data too large (max 50KB)" };
   }
 
   let rawData;
@@ -193,7 +214,6 @@ export async function renderCV(formData: FormData): Promise<{
     rawData = {
       cv: JSON.parse(cvString),
       template,
-      format,
     };
   } catch {
     return { success: false, error: "Invalid CV data format" };
@@ -210,20 +230,7 @@ export async function renderCV(formData: FormData): Promise<{
 
   const renderer = new CVRendererService();
   try {
-    const { cv, template: validatedTemplate, format: validatedFormat } = validated.data;
-
-    if (validatedFormat === "html") {
-      const html = await renderer.renderHTML(cv, validatedTemplate);
-      return {
-        success: true,
-        data: {
-          blob: Buffer.from(html).toString("base64"),
-          filename: "cv.html",
-          contentType: "text/html",
-        },
-      };
-    }
-
+    const { cv, template: validatedTemplate } = validated.data;
     const pdf = await renderer.renderPDF(cv, { template: validatedTemplate });
 
     return {
@@ -260,6 +267,10 @@ export async function generatePreviewHTML(formData: FormData): Promise<{
 
     if (typeof cvString !== "string") {
       return { success: false, error: "Missing CV data" };
+    }
+
+    if (cvString.length > MAX_CV_SIZE) {
+      return { success: false, error: "CV data too large (max 50KB)" };
     }
 
     const rawData = {

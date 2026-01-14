@@ -6,17 +6,22 @@ export function minimal(data: CV): string {
 <html>
 <head>
     <meta charset="UTF-8">
+    <title>${escapeHtml(data.name)} - CV</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&family=Source+Sans+3:wght@400;500;600&display=swap');
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         @page {
-            margin: 48px 0 0 0;
+            size: A4;
+            margin: 10mm;
         }
 
-        @page :first {
-            margin-top: 0;
+        @media print {
+            html, body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
 
         body {

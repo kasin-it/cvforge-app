@@ -29,12 +29,15 @@ export class CVRendererService {
     const page = await browser.newPage();
 
     try {
-      await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+      await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 10000 });
+
+      // Wait for fonts to load
+      await page.evaluateHandle("document.fonts.ready");
 
       const pdf = await page.pdf({
         format: "A4",
         printBackground: true,
-        tagged: true,
+        margin: { top: "0", right: "0", bottom: "0", left: "0" },
       });
 
       return Buffer.from(pdf);
@@ -52,7 +55,10 @@ export class CVRendererService {
 
   private async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      this.browser = await puppeteer.launch();
+      this.browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
     }
     return this.browser;
   }
