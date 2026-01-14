@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["puppeteer"],
+  serverExternalPackages: ["@sparticuz/chromium", "puppeteer-core", "puppeteer"],
 };
 
 export default nextConfig;

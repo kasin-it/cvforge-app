@@ -1,4 +1,5 @@
-import puppeteer, { type Browser } from "puppeteer";
+import puppeteer, { type Browser } from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 import type { CV, RenderOptions } from "../schema";
 import { modern } from "../templates/modern";
 import { minimal } from "../templates/minimal";
@@ -9,6 +10,8 @@ const templates = {
 } as const;
 
 type TemplateName = keyof typeof templates;
+
+const isDev = process.env.NODE_ENV === "development";
 
 export class CVRendererService {
   private browser: Browser | null = null;
@@ -55,10 +58,22 @@ export class CVRendererService {
 
   private async getBrowser(): Promise<Browser> {
     if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      });
+      if (isDev) {
+        // Local development: use puppeteer's bundled chromium
+        const localPuppeteer = await import("puppeteer");
+        this.browser = await localPuppeteer.default.launch({
+          headless: true,
+          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        });
+      } else {
+        // Production (Vercel): use @sparticuz/chromium
+        this.browser = await puppeteer.launch({
+          args: chromium.args,
+          defaultViewport: { width: 1920, height: 1080 },
+          executablePath: await chromium.executablePath(),
+          headless: true,
+        });
+      }
     }
     return this.browser;
   }
