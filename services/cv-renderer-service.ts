@@ -1,5 +1,5 @@
 import puppeteer, { type Browser } from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import chromium from "@sparticuz/chromium-min";
 import type { CV, RenderOptions } from "../schema";
 import { modern } from "../templates/modern";
 import { minimal } from "../templates/minimal";
@@ -12,6 +12,10 @@ const templates = {
 type TemplateName = keyof typeof templates;
 
 const isDev = process.env.NODE_ENV === "development";
+
+// Hosted chromium binary for serverless environments
+const CHROMIUM_PACK_URL =
+  "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.tar";
 
 export class CVRendererService {
   private browser: Browser | null = null;
@@ -66,11 +70,11 @@ export class CVRendererService {
           args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
       } else {
-        // Production (Vercel): use @sparticuz/chromium
+        // Production (Vercel): use @sparticuz/chromium-min with external binary
         this.browser = await puppeteer.launch({
           args: chromium.args,
           defaultViewport: { width: 1920, height: 1080 },
-          executablePath: await chromium.executablePath(),
+          executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
           headless: true,
         });
       }
