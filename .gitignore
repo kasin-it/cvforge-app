@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# chromium binary (generated during build)
+/public/chromium-pack.tar
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

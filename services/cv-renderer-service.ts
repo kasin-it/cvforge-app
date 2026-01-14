@@ -13,9 +13,24 @@ type TemplateName = keyof typeof templates;
 
 const isDev = process.env.NODE_ENV === "development";
 
-// Hosted chromium binary for serverless environments
-const CHROMIUM_PACK_URL =
-  "https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.tar";
+// Chromium binary URL - self-hosted in public folder on Vercel
+function getChromiumPackUrl(): string {
+  const baseUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : null;
+
+  if (baseUrl) {
+    return `${baseUrl}/chromium-pack.tar`;
+  }
+
+  // Fallback to GitHub release
+  return "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.x86_64.tar";
+}
+
+// Cache executable path to avoid re-downloading
+let cachedExecutablePath: string | null = null;
 
 export class CVRendererService {
   private browser: Browser | null = null;
@@ -70,11 +85,17 @@ export class CVRendererService {
           args: ["--no-sandbox", "--disable-setuid-sandbox"],
         });
       } else {
-        // Production (Vercel): use @sparticuz/chromium-min with external binary
+        // Production (Vercel): use @sparticuz/chromium-min with self-hosted binary
+        if (!cachedExecutablePath) {
+          const packUrl = getChromiumPackUrl();
+          console.log(`Downloading chromium from: ${packUrl}`);
+          cachedExecutablePath = await chromium.executablePath(packUrl);
+        }
+
         this.browser = await puppeteer.launch({
           args: chromium.args,
           defaultViewport: { width: 1920, height: 1080 },
-          executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
+          executablePath: cachedExecutablePath,
           headless: true,
         });
       }
